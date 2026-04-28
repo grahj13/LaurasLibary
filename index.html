@@ -469,7 +469,7 @@
           <input id="title" required placeholder="e.g. Harry Potter" />
 
           <label for="author">Author *</label>
-          <input id="author" placeholder="e.g. JRR Tolkien" />
+          <input id="author" required placeholder="e.g. JRR Tolkien" />
 
           <div class="row">
             <div>
@@ -936,14 +936,17 @@
       if (!$('title').value.trim()) {
         alert('Add a title first. Laura cannot file a mystery book.');
         return false;
-         if (!$('author').value.trim()) {
-        alert('Add a title first. Laura cannot file a mystery book.');
+      }
+
+      if (!$('author').value.trim()) {
+        alert('Add an author first. Even Laura needs to know who wrote it.');
         return false;
       }
 
       const id = $('bookId').value || crypto.randomUUID();
       const existing = books.find(b => b.id === id);
       const readDates = [...currentFormReadDates];
+      const sortedReadDates = [...readDates].sort((a, b) => b.localeCompare(a));
       const book = {
         id,
         isbn: cleanIsbn($('isbn').value),
@@ -959,11 +962,10 @@
         readReason: $('readReason').value,
         moodTags: splitTags($('moodTags').value),
         feelTags: splitTags($('feelTags').value),
-        timesRead: Number($('timesRead').value || readDates.length || 0),
+        timesRead: Number($('timesRead').value || sortedReadDates.length || 0),
         pageCount: Number($('pageCount').value || 0),
-        rereadDates: readDates,
-        lastRead: readDates.slice(-1)[0] || '',
-        
+        rereadDates: sortedReadDates,
+        lastRead: sortedReadDates[0] || '',
         notes: $('notes').value.trim(),
         createdAt: existing?.createdAt || Date.now(),
         updatedAt: Date.now()
@@ -1013,7 +1015,6 @@
       $('pageCount').value = book.pageCount || 0;
       currentFormReadDates = [...(book.rereadDates || [])];
       renderFormReadDates();
-      $('lastRead').value = book.lastRead || '';
       
       $('notes').value = book.notes || '';
       $('formTitle').textContent = 'Edit Book';
