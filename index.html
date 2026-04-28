@@ -417,7 +417,7 @@
 </head>
 <body>
   <header>
-    <h1>🌻 Laura's Library 🌻</h1>
+    <h1>🌻 Laura's Library</h1>
     <div class="subtitle">A cosy home for every physical book, ebook, audiobook, reread, wishlist pick, and comfort favourite.</div>
   </header>
 
@@ -536,8 +536,6 @@
           </div>
           <div class="read-date-list" id="readDateList"></div>
           <input type="hidden" id="rereadDates" />
-          <div class="small-note">Add one date each time Laura finishes or rereads this book.</div>        <div class="read-date-list" id="readDateList"></div>
-          <input type="hidden" id="rereadDates" />
           <div class="small-note">Add one date each time Laura finishes or rereads this book.</div>
 
           <div class="row">
@@ -603,14 +601,17 @@
         <div class="filters" id="tagFilters"></div>
         <div id="bookGrid" class="book-grid"></div>
       </section>
-    </slet activeTab = 'All';
-    let activeTag = 'All';
-    let currentFormReadDates = [];EY = 'laurasLibraryBooksV1';
+    </section>
+  </main>
+
+  <script>
+    const STORAGE_KEY = 'laurasLibraryBooksV1';
     const OPEN_LIBRARY_BASE = 'https://openlibrary.org';
 
     let books = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
     let activeTab = 'All';
     let activeTag = 'All';
+    let currentFormReadDates = [];
 
     const tabs = ['All', 'Wishlist', 'TBR', 'Owned', 'Reading', 'Finished', 'Unread', 'DNF', 'Rereads'];
 
@@ -633,7 +634,10 @@
     }
 
     function cleanIsbn(value) {
-      return String(value || '').replaction setIsbnStatus(message) {
+      return String(value || '').replace(/[^0-9Xx]/g, '').toUpperCase();
+    }
+
+    function setIsbnStatus(message) {
       $('isbnStatus').textContent = message;
     }
 
@@ -692,7 +696,15 @@
     function sameMonth(dateStr, year, month) {
       if (!dateStr) return false;
       const d = new Date(dateStr);
-      return d.getFullYear() === yfunction renderFormReadDates() {
+      return d.getFullYear() === year && d.getMonth() === month;
+    }
+
+    function renderRatingButtons(selected = 0) {
+      const wrap = $('ratingButtons');
+      if (!wrap) return;
+    }
+
+    function renderFormReadDates() {
       const list = $('readDateList');
       if (!list) return;
 
@@ -730,14 +742,6 @@
       renderFormReadDates();
     }
 
-    function renderDashboard() {h;
-    }
-
-    function renderRatingButtons(selected = 0) {
-      const wrap = $('ratingButtons');
-      if (!wrap) return;
-    }
-
     function renderDashboard() {
       const now = new Date();
       const year = now.getFullYear();
@@ -746,7 +750,8 @@
       const allReadDates = books.flatMap(b => b.rereadDates || []).filter(Boolean);
       const readThisYear = allReadDates.filter(d => sameYear(d, year)).length || finished.filter(b => sameYear(b.dateFinished || b.lastRead, year)).length;
       const readThisMonth = allReadDates.filter(d => sameMonth(d, year, month)).length || finished.filter(b => sameMonth(b.dateFinished || b.lastRead, year, month)).length;
-      const totalPagesReadtem('laurasLibraryYearlyTarget') || 50);
+      const totalPagesRead = books.reduce((sum, b) => sum + (Number(b.pageCount || 0) * Number(b.timesRead || 0)), 0);
+      const yearlyTarget = Number(localStorage.getItem('laurasLibraryYearlyTarget') || 50);
       const remainingTarget = Math.max(0, yearlyTarget - readThisYear);
       const currentReads = books.filter(b => b.status === 'Reading').length;
       const wishlist = books.filter(b => b.status === 'Wishlist').length;
@@ -906,7 +911,8 @@
       }
 
       const id = $('bookId').value || crypto.randomUUID();
-      const existing = books.find(b => b.const readDates = [...currentFormReadDates];).filter(Boolean);
+      const existing = books.find(b => b.id === id);
+      const readDates = [...currentFormReadDates];
       const book = {
         id,
         isbn: cleanIsbn($('isbn').value),
@@ -943,10 +949,11 @@
     $('bookForm').addEventListener('submit', saveBook);
     $('saveBookButton').addEventListener('click', saveBook);
 
-    function re$('bookForm').reset();
+    function resetForm() {
+      $('bookForm').reset();
       $('bookId').value = '';
       currentFormReadDates = [];
-      renderFormReadDates();okId').value = '';
+      renderFormReadDates();
       setIsbnStatus('Optional. Works best for physical books.');
       $('rating').value = 0;
       $('timesRead').value = 0;
@@ -974,8 +981,8 @@
       $('feelTags').value = (book.feelTags || []).join(', ');
       $('timesRead').value = book.timesRead || 0;
       $('pageCount').value = book.pageCount || 0;
-      $('rereadDates').value = (book.rereadDates || []).join('
-');
+      currentFormReadDates = [...(book.rereadDates || [])];
+      renderFormReadDates();
       $('lastRead').value = book.lastRead || '';
       $('dateStarted').value = book.dateStarted || '';
       $('dateFinished').value = book.dateFinished || '';
@@ -1045,6 +1052,7 @@
     ['search', 'formatFilter', 'genreFilter', 'sortBy'].forEach(id => $(id).addEventListener('input', render));
 
     $('fetchIsbn').onclick = fetchBookByIsbn;
+    $('addReadDate').onclick = addFormReadDate;
 
     $('exportData').onclick = () => {
       const blob = new Blob([JSON.stringify(books, null, 2)], { type: 'application/json' });
@@ -1084,6 +1092,7 @@
       render();
     };
 
+    renderFormReadDates();
     render();
   </script>
 </body>
