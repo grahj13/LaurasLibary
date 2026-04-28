@@ -44,6 +44,21 @@
       color: var(--sage-dark);
     }
 
+    .site-title {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: clamp(10px, 2vw, 22px);
+      line-height: 1;
+      flex-wrap: nowrap;
+    }
+
+    .title-flower {
+      font-size: clamp(2rem, 4vw, 3.8rem);
+      line-height: 1;
+      flex: 0 0 auto;
+    }
+
     .subtitle {
       margin-top: 8px;
       color: var(--muted);
@@ -442,7 +457,7 @@
 </head>
 <body>
   <header>
-    <h1>🌻 Laura's Library 🌻</h1>
+    <h1 class="site-title"><span class="title-flower">🌻</span><span>Laura's Library</span><span class="title-flower">🌻</span></h1>
     <div class="subtitle">A cosy home for every physical book, ebook, audiobook, reread, wishlist pick, and comfort favourite.</div>
   </header>
 
