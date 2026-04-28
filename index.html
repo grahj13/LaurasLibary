@@ -213,7 +213,7 @@
 
     .topbar {
       display: grid;
-      grid-template-columns: 1.3fr .8fr .8fr;
+      grid-template-columns: 1.3fr .8fr .8fr .8fr;
       gap: 10px;
       margin-bottom: 14px;
     }
@@ -386,7 +386,7 @@
 <body>
   <header>
     <h1>🌻 Laura's Library</h1>
-    <div class="subtitle">A cosy home for every physical book, Kindle read, audiobook, reread, wishlist pick, and comfort favourite.</div>
+    <div class="subtitle">A cosy home for every physical book, ebook, audiobook, reread, wishlist pick, and comfort favourite.</div>
   </header>
 
   <main class="app">
@@ -429,16 +429,19 @@
             <div>
               <label for="format">Source / Format</label>
               <select id="format">
-                <option>Physical</option>
-                <option>Kindle</option>
+                <option>Hardback</option>
+                <option>Paperback</option>
+                <option>Special Edition</option>
+                <option>Ebook</option>
                 <option>Audiobook</option>
-                <option>Multiple</option>
+                <option>Combination</option>
               </select>
             </div>
             <div>
               <label for="status">Status</label>
               <select id="status">
                 <option>Wishlist</option>
+                <option>TBR</option>
                 <option>Owned</option>
                 <option>Reading</option>
                 <option>Finished</option>
@@ -457,6 +460,25 @@
             <option value="5">5 🌻🌻🌻🌻🌻</option>
           </select>
 
+          <label for="genre">Genre</label>
+          <select id="genre">
+            <option value="">No genre selected</option>
+            <option>Fantasy</option>
+            <option>Romantasy</option>
+            <option>Romance</option>
+            <option>Epic Fantasy</option>
+            <option>YA</option>
+          </select>
+
+          <label for="readReason">Read Type</label>
+          <select id="readReason">
+            <option value="">Not set</option>
+            <option>Recommended Book</option>
+            <option>Mood Read</option>
+            <option>Book Club</option>
+            <option>Buddy Read</option>
+          </select>
+
           <label for="moodTags">Mood Tags</label>
           <input id="moodTags" placeholder="cosy, dark, comfort read, emotional" />
           <div class="small-note">Separate tags with commas.</div>
@@ -470,10 +492,14 @@
               <input id="timesRead" type="number" min="0" value="0" />
             </div>
             <div>
-              <label for="lastRead">Last Read</label>
-              <input id="lastRead" type="date" />
+              <label for="pageCount">Page Count</label>
+              <input id="pageCount" type="number" min="0" value="0" />
             </div>
           </div>
+
+          <label for="rereadDates">Read / Reread Dates</label>
+          <textarea id="rereadDates" placeholder="One date per line, e.g. 2026-04-28"></textarea>
+          <div class="small-note">Use this to track each read properly, not just a rough count.</div>
 
           <div class="row">
             <div>
@@ -510,10 +536,20 @@
           <input id="search" placeholder="Search title, author, series, notes or tags..." />
           <select id="formatFilter">
             <option value="All">All Formats</option>
-            <option>Physical</option>
-            <option>Kindle</option>
+            <option>Hardback</option>
+            <option>Paperback</option>
+            <option>Special Edition</option>
+            <option>Ebook</option>
             <option>Audiobook</option>
-            <option>Multiple</option>
+            <option>Combination</option>
+          </select>
+          <select id="genreFilter">
+            <option value="All">All Genres</option>
+            <option>Fantasy</option>
+            <option>Romantasy</option>
+            <option>Romance</option>
+            <option>Epic Fantasy</option>
+            <option>YA</option>
           </select>
           <select id="sortBy">
             <option value="newest">Newest Added</option>
@@ -539,7 +575,7 @@
     let activeTab = 'All';
     let activeTag = 'All';
 
-    const tabs = ['All', 'Wishlist', 'Owned', 'Reading', 'Finished', 'DNF', 'Rereads'];
+    const tabs = ['All', 'Wishlist', 'TBR', 'Owned', 'Reading', 'Finished', 'Unread', 'DNF', 'Rereads'];
 
     const $ = (id) => document.getElementById(id);
 
@@ -635,8 +671,12 @@
       const year = now.getFullYear();
       const month = now.getMonth();
       const finished = books.filter(b => b.status === 'Finished');
-      const readThisYear = finished.filter(b => sameYear(b.dateFinished || b.lastRead, year)).length;
-      const readThisMonth = finished.filter(b => sameMonth(b.dateFinished || b.lastRead, year, month)).length;
+      const allReadDates = books.flatMap(b => b.rereadDates || []).filter(Boolean);
+      const readThisYear = allReadDates.filter(d => sameYear(d, year)).length || finished.filter(b => sameYear(b.dateFinished || b.lastRead, year)).length;
+      const readThisMonth = allReadDates.filter(d => sameMonth(d, year, month)).length || finished.filter(b => sameMonth(b.dateFinished || b.lastRead, year, month)).length;
+      const totalPagesRead = books.reduce((sum, b) => sum + (Number(b.pageCount || 0) * Number(b.timesRead || 0)), 0);
+      const yearlyTarget = Number(localStorage.getItem('laurasLibraryYearlyTarget') || 50);
+      const remainingTarget = Math.max(0, yearlyTarget - readThisYear);
       const currentReads = books.filter(b => b.status === 'Reading').length;
       const wishlist = books.filter(b => b.status === 'Wishlist').length;
       const rereads = books.reduce((sum, b) => sum + Math.max(0, Number(b.timesRead || 0) - 1), 0);
@@ -647,8 +687,8 @@
         [books.length, 'Total Books'],
         [readThisYear, 'Read This Year'],
         [readThisMonth, 'Read This Month'],
-        [currentReads, 'Currently Reading'],
-        [wishlist, 'Wishlist'],
+        [remainingTarget, `Left of ${yearlyTarget} Target`],
+        [totalPagesRead.toLocaleString(), 'Total Pages Read'],
         [avgRating + ' 🌻', 'Average Rating']
       ];
 
@@ -696,22 +736,24 @@
     function filteredBooks() {
       const query = $('search').value.trim().toLowerCase();
       const format = $('formatFilter').value;
+      const genre = $('genreFilter').value;
       const sortBy = $('sortBy').value;
 
       let result = books.filter(book => {
         const combined = [
-          book.title, book.author, book.series, book.notes,
+          book.title, book.author, book.series, book.genre, book.readReason, book.status, book.notes,
           ...(book.moodTags || []), ...(book.feelTags || [])
         ].join(' ').toLowerCase();
 
         const matchesQuery = !query || combined.includes(query);
         const matchesFormat = format === 'All' || book.format === format;
+        const matchesGenre = genre === 'All' || book.genre === genre;
         const matchesTab = activeTab === 'All'
-          || (activeTab === 'Rereads' ? Number(book.timesRead || 0) > 1 : book.status === activeTab);
+          || (activeTab === 'Rereads' ? Number(book.timesRead || 0) > 1 : activeTab === 'Unread' ? !['Reading', 'Finished', 'DNF'].includes(book.status) : book.status === activeTab);
         const tags = [...(book.moodTags || []), ...(book.feelTags || [])];
         const matchesTag = activeTag === 'All' || tags.includes(activeTag);
 
-        return matchesQuery && matchesFormat && matchesTab && matchesTag;
+        return matchesQuery && matchesFormat && matchesGenre && matchesTab && matchesTag;
       });
 
       result.sort((a, b) => {
@@ -746,9 +788,12 @@
               <span class="chip status">${escapeHtml(book.status)}</span>
               <span class="chip">${escapeHtml(book.format)}</span>
               <span class="chip rating">${sunflowerRating(book.rating)}</span>
+              ${book.genre ? `<span class="chip">${escapeHtml(book.genre)}</span>` : ''}
+              ${book.readReason ? `<span class="chip">${escapeHtml(book.readReason)}</span>` : ''}
               ${book.isbn ? `<span class="chip">ISBN: ${escapeHtml(book.isbn)}</span>` : ''}
               ${book.series ? `<span class="chip">${escapeHtml(book.series)}${book.seriesNumber ? ' #' + escapeHtml(book.seriesNumber) : ''}</span>` : ''}
               <span class="chip">Read ${Number(book.timesRead || 0)}x</span>
+              ${book.pageCount ? `<span class="chip">${Number(book.pageCount).toLocaleString()} pages</span>` : ''}
               ${book.lastRead ? `<span class="chip">Last read: ${book.lastRead}</span>` : ''}
             </div>
             ${allBookTags.length ? `<div class="meta">${allBookTags.map(tag => `<span class="chip">${escapeHtml(tag)}</span>`).join('')}</div>` : ''}
@@ -757,6 +802,7 @@
               <button class="secondary" onclick="editBook('${book.id}')">Edit</button>
               <button class="secondary" onclick="markFinished('${book.id}')">Finished</button>
               <button class="secondary" onclick="increaseRead('${book.id}')">+ Reread</button>
+              <button class="secondary" onclick="decreaseRead('${book.id}')">- Reread</button>
               <button class="danger" onclick="deleteBook('${book.id}')">Delete</button>
             </div>
           </article>
@@ -796,10 +842,16 @@
         format: $('format').value,
         status: $('status').value,
         rating: Number($('rating').value),
+        genre: $('genre').value,
+        readReason: $('readReason').value,
         moodTags: splitTags($('moodTags').value),
         feelTags: splitTags($('feelTags').value),
         timesRead: Number($('timesRead').value || 0),
-        lastRead: $('lastRead').value,
+        pageCount: Number($('pageCount').value || 0),
+        rereadDates: $('rereadDates').value.split('
+').map(d => d.trim()).filter(Boolean),
+        lastRead: ($('rereadDates').value.split('
+').map(d => d.trim()).filter(Boolean).slice(-1)[0]) || $('dateFinished').value || '',
         dateStarted: $('dateStarted').value,
         dateFinished: $('dateFinished').value,
         notes: $('notes').value.trim(),
@@ -834,12 +886,17 @@
       $('author').value = book.author || '';
       $('series').value = book.series || '';
       $('seriesNumber').value = book.seriesNumber || '';
-      $('format').value = book.format || 'Physical';
+      $('format').value = book.format || 'Paperback';
       $('status').value = book.status || 'Owned';
       $('rating').value = book.rating || 0;
+      $('genre').value = book.genre || '';
+      $('readReason').value = book.readReason || '';
       $('moodTags').value = (book.moodTags || []).join(', ');
       $('feelTags').value = (book.feelTags || []).join(', ');
       $('timesRead').value = book.timesRead || 0;
+      $('pageCount').value = book.pageCount || 0;
+      $('rereadDates').value = (book.rereadDates || []).join('
+');
       $('lastRead').value = book.lastRead || '';
       $('dateStarted').value = book.dateStarted || '';
       $('dateFinished').value = book.dateFinished || '';
@@ -869,11 +926,30 @@
       books = books.map(book => book.id === id ? {
         ...book,
         timesRead: Number(book.timesRead || 0) + 1,
+        rereadDates: [...(book.rereadDates || []), today()],
         status: 'Finished',
         lastRead: today(),
         dateFinished: today(),
         updatedAt: Date.now()
       } : book);
+      save();
+      render();
+    }
+
+    window.decreaseRead = function(id) {
+      books = books.map(book => {
+        if (book.id !== id) return book;
+        const dates = [...(book.rereadDates || [])];
+        dates.pop();
+        const reads = Math.max(0, Number(book.timesRead || 0) - 1);
+        return {
+          ...book,
+          timesRead: reads,
+          rereadDates: dates,
+          lastRead: dates.slice(-1)[0] || '',
+          updatedAt: Date.now()
+        };
+      });
       save();
       render();
     }
@@ -887,7 +963,7 @@
       render();
     }
 
-    ['search', 'formatFilter', 'sortBy'].forEach(id => $(id).addEventListener('input', render));
+    ['search', 'formatFilter', 'genreFilter', 'sortBy'].forEach(id => $(id).addEventListener('input', render));
 
     $('fetchIsbn').onclick = fetchBookByIsbn;
 
