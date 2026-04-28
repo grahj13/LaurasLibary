@@ -334,6 +334,31 @@
     .chip.status { background: #e8f0e2; color: var(--sage-dark); }
     .chip.rating { background: #fff0b7; color: #6e4c00; }
 
+    .read-history {
+      margin-top: 10px;
+      padding: 9px;
+      background: rgba(246, 201, 69, 0.12);
+      border: 1px solid rgba(194, 139, 0, 0.16);
+      border-radius: 14px;
+      font-size: 0.84rem;
+      color: #5f4200;
+    }
+
+    .read-history strong {
+      display: block;
+      margin-bottom: 6px;
+      color: var(--sage-dark);
+    }
+
+    .read-history span {
+      display: inline-block;
+      margin: 2px 5px 2px 0;
+      padding: 4px 7px;
+      background: #fff8e8;
+      border-radius: 999px;
+      border: 1px solid rgba(194, 139, 0, 0.16);
+    }
+
     .card-actions {
       display: flex;
       gap: 7px;
@@ -538,16 +563,7 @@
           <input type="hidden" id="rereadDates" />
           <div class="small-note">Add one date each time Laura finishes or rereads this book.</div>
 
-          <div class="row">
-            <div>
-              <label for="dateStarted">Date Started</label>
-              <input id="dateStarted" type="date" />
-            </div>
-            <div>
-              <label for="dateFinished">Date Finished</label>
-              <input id="dateFinished" type="date" />
-            </div>
-          </div>
+          
 
           <label for="notes">Notes</label>
           <textarea id="notes" placeholder="Thoughts, quotes, reread notes, why Laura loves it..."></textarea>
@@ -716,7 +732,7 @@
         return;
       }
 
-      currentFormReadDates.sort((a, b) => a.localeCompare(b));
+      currentFormReadDates.sort((a, b) => b.localeCompare(a));
       $('timesRead').value = currentFormReadDates.length;
       list.innerHTML = currentFormReadDates.map((date, index) => `
         <span class="read-date-pill">
@@ -870,9 +886,10 @@
               ${book.series ? `<span class="chip">${escapeHtml(book.series)}${book.seriesNumber ? ' #' + escapeHtml(book.seriesNumber) : ''}</span>` : ''}
               <span class="chip">Read ${Number(book.timesRead || 0)}x</span>
               ${book.pageCount ? `<span class="chip">${Number(book.pageCount).toLocaleString()} pages</span>` : ''}
-              ${book.lastRead ? `<span class="chip">Last read: ${book.lastRead}</span>` : ''}
+              ${book.rereadDates?.length ? `<span class="chip">Last read: ${escapeHtml([...book.rereadDates].sort((a,b) => b.localeCompare(a))[0])}</span>` : ''}
             </div>
             ${allBookTags.length ? `<div class="meta">${allBookTags.map(tag => `<span class="chip">${escapeHtml(tag)}</span>`).join('')}</div>` : ''}
+            ${book.rereadDates?.length ? `<div class="read-history"><strong>Read dates:</strong> ${[...book.rereadDates].sort((a,b) => b.localeCompare(a)).map(date => `<span>${escapeHtml(date)}</span>`).join('')}</div>` : ''}
             ${book.notes ? `<p>${escapeHtml(book.notes)}</p>` : ''}
             <div class="card-actions">
               <button class="secondary" onclick="editBook('${book.id}')">Edit</button>
@@ -931,9 +948,8 @@
         timesRead: Number($('timesRead').value || readDates.length || 0),
         pageCount: Number($('pageCount').value || 0),
         rereadDates: readDates,
-        lastRead: readDates.slice(-1)[0] || $('dateFinished').value || '',
-        dateStarted: $('dateStarted').value,
-        dateFinished: $('dateFinished').value,
+        lastRead: readDates.slice(-1)[0] || '',
+        
         notes: $('notes').value.trim(),
         createdAt: existing?.createdAt || Date.now(),
         updatedAt: Date.now()
@@ -984,8 +1000,7 @@
       currentFormReadDates = [...(book.rereadDates || [])];
       renderFormReadDates();
       $('lastRead').value = book.lastRead || '';
-      $('dateStarted').value = book.dateStarted || '';
-      $('dateFinished').value = book.dateFinished || '';
+      
       $('notes').value = book.notes || '';
       $('formTitle').textContent = 'Edit Book';
       window.scrollTo({ top: 0, behavior: 'smooth' });
