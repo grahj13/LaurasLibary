@@ -466,10 +466,10 @@
           <input id="coverUrl" placeholder="Auto-filled from ISBN when available" />
 
           <label for="title">Title *</label>
-          <input id="title" required placeholder="e.g. Pride and Prejudice" />
+          <input id="title" required placeholder="e.g. Harry Potter" />
 
-          <label for="author">Author</label>
-          <input id="author" placeholder="e.g. Jane Austen" />
+          <label for="author">Author *</label>
+          <input id="author" placeholder="e.g. JRR Tolkien" />
 
           <div class="row">
             <div>
@@ -934,6 +934,9 @@
       if (event) event.preventDefault();
 
       if (!$('title').value.trim()) {
+        alert('Add a title first. Laura cannot file a mystery book.');
+        return false;
+         if (!$('author').value.trim()) {
         alert('Add a title first. Laura cannot file a mystery book.');
         return false;
       }
