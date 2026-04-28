@@ -520,7 +520,7 @@
           <h2>Daily Reading Log</h2>
           <div class="read-today-row">
             <input id="readingLogDate" type="date" />
-            <button class="primary" type="button" id="markReadToday">I Read Today</button>
+            <button class="primary" type="button" id="markReadToday" onclick="markReadingDay()">I Read Today</button>
           </div>
           <div class="small-note" id="readingLogStatus">Track days Laura reads, even if she does not finish a book.</div>
           <div class="reading-log-list" id="readingLogList"></div>
@@ -1082,7 +1082,7 @@
       `).join('') + (days.length > 12 ? `<span class="small-note">+${days.length - 12} older days</span>` : '');
     }
 
-    function markReadingDay() {
+    window.markReadingDay = function markReadingDay() {
       const date = $('readingLogDate').value || today();
       if (!readingLog.includes(date)) {
         readingLog.push(date);
@@ -1260,7 +1260,7 @@
     ['search', 'formatFilter', 'genreFilter', 'sortBy'].forEach(id => $(id).addEventListener('input', render));
 
     $('fetchIsbn').onclick = fetchBookByIsbn;
-    $('markReadToday').onclick = markReadingDay;
+    if ($('markReadToday')) $('markReadToday').onclick = markReadingDay;
     if ($('addReadDate')) $('addReadDate').onclick = addFormReadDate;
 
     $('exportData').onclick = () => {
