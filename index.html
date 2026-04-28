@@ -624,7 +624,18 @@
     const STORAGE_KEY = 'laurasLibraryBooksV1';
     const OPEN_LIBRARY_BASE = 'https://openlibrary.org';
 
-    let books = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+    let books = [];
+
+    function loadBooks() {
+      try {
+        const saved = localStorage.getItem(STORAGE_KEY);
+        books = saved ? JSON.parse(saved) : [];
+        if (!Array.isArray(books)) books = [];
+      } catch (error) {
+        books = [];
+        console.error('Could not load Laura\'s Library data:', error);
+      }
+    }
     let activeTab = 'All';
     let activeTag = 'All';
     let currentFormReadDates = [];
@@ -1107,8 +1118,17 @@
       render();
     };
 
-    renderFormReadDates();
-    render();
+    function startApp() {
+      loadBooks();
+      renderFormReadDates();
+      render();
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', startApp);
+    } else {
+      startApp();
+    }
   </script>
 </body>
 </html>
