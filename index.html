@@ -557,7 +557,7 @@
           <label for="readDateInput">Read / Reread Dates</label>
           <div class="read-date-row">
             <input id="readDateInput" type="date" />
-            <button class="secondary" type="button" id="addReadDate">Add Date</button>
+            <button class="secondary" type="button" id="addReadDate" onclick="addFormReadDate()">Add Date</button>
           </div>
           <div class="read-date-list" id="readDateList"></div>
           <input type="hidden" id="rereadDates" />
@@ -747,7 +747,7 @@
       renderFormReadDates();
     }
 
-    function addFormReadDate() {
+    window.addFormReadDate = function addFormReadDate() {
       const date = $('readDateInput').value;
       if (!date) {
         alert('Pick a read date first.');
@@ -1067,7 +1067,7 @@
     ['search', 'formatFilter', 'genreFilter', 'sortBy'].forEach(id => $(id).addEventListener('input', render));
 
     $('fetchIsbn').onclick = fetchBookByIsbn;
-    $('addReadDate').onclick = addFormReadDate;
+    if ($('addReadDate')) $('addReadDate').onclick = addFormReadDate;
 
     $('exportData').onclick = () => {
       const blob = new Blob([JSON.stringify(books, null, 2)], { type: 'application/json' });
