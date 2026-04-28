@@ -1,0 +1,935 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Laura's Library</title>
+  <style>
+    :root {
+      --cream: #fff8e8;
+      --cream-dark: #f4e8c8;
+      --sunflower: #f6c945;
+      --sunflower-dark: #c28b00;
+      --sage: #7f9b76;
+      --sage-dark: #41583a;
+      --ink: #2f2618;
+      --muted: #7c6f5f;
+      --card: #fffdf5;
+      --danger: #b7472a;
+      --shadow: 0 16px 40px rgba(47, 38, 24, 0.14);
+      --radius: 22px;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: Georgia, 'Times New Roman', serif;
+      background:
+        radial-gradient(circle at top left, rgba(246, 201, 69, 0.35), transparent 32%),
+        linear-gradient(135deg, #fff8e8 0%, #f7efd9 45%, #edf4e8 100%);
+      color: var(--ink);
+      min-height: 100vh;
+    }
+
+    header {
+      padding: 34px 22px 24px;
+      text-align: center;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(2.3rem, 6vw, 4.8rem);
+      letter-spacing: -1px;
+      color: var(--sage-dark);
+    }
+
+    .subtitle {
+      margin-top: 8px;
+      color: var(--muted);
+      font-size: 1.05rem;
+    }
+
+    .app {
+      width: min(1240px, calc(100% - 28px));
+      margin: 0 auto 40px;
+    }
+
+    .dashboard {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 14px;
+      margin-bottom: 18px;
+    }
+
+    .stat-card {
+      background: rgba(255, 253, 245, 0.82);
+      border: 1px solid rgba(127, 155, 118, 0.24);
+      border-radius: 18px;
+      padding: 16px;
+      box-shadow: 0 8px 20px rgba(47, 38, 24, 0.08);
+      backdrop-filter: blur(10px);
+    }
+
+    .stat-value {
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--sage-dark);
+      line-height: 1;
+    }
+
+    .stat-label {
+      margin-top: 8px;
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 390px 1fr;
+      gap: 18px;
+      align-items: start;
+    }
+
+    .panel, .library-panel {
+      background: rgba(255, 253, 245, 0.9);
+      border: 1px solid rgba(127, 155, 118, 0.28);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    .panel {
+      padding: 18px;
+      position: sticky;
+      top: 14px;
+    }
+
+    .library-panel { padding: 18px; }
+
+    h2 {
+      margin: 0 0 14px;
+      color: var(--sage-dark);
+      font-size: 1.45rem;
+    }
+
+    label {
+      display: block;
+      margin: 12px 0 6px;
+      font-weight: 700;
+      font-size: 0.92rem;
+      color: var(--sage-dark);
+    }
+
+    input, select, textarea {
+      width: 100%;
+      border: 1px solid rgba(65, 88, 58, 0.28);
+      background: #fffaf0;
+      color: var(--ink);
+      border-radius: 14px;
+      padding: 11px 12px;
+      font-family: inherit;
+      font-size: 0.98rem;
+      outline: none;
+    }
+
+    textarea { min-height: 78px; resize: vertical; }
+
+    input:focus, select:focus, textarea:focus {
+      border-color: var(--sunflower-dark);
+      box-shadow: 0 0 0 4px rgba(246, 201, 69, 0.22);
+    }
+
+    .row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .isbn-row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .isbn-row button {
+      height: 44px;
+      white-space: nowrap;
+    }
+
+    .buttons {
+      display: flex;
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    button {
+      border: 0;
+      border-radius: 999px;
+      padding: 11px 15px;
+      font-family: inherit;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform .15s ease, box-shadow .15s ease, opacity .15s ease;
+    }
+
+    button:hover { transform: translateY(-1px); }
+    button:active { transform: translateY(0); opacity: .88; }
+
+    .primary {
+      background: var(--sunflower);
+      color: #3b2900;
+      box-shadow: 0 8px 18px rgba(194, 139, 0, 0.22);
+      flex: 1;
+    }
+
+    .secondary {
+      background: #e9f0e4;
+      color: var(--sage-dark);
+    }
+
+    .danger {
+      background: #f4d5c9;
+      color: var(--danger);
+    }
+
+    .tabs, .filters {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 14px;
+    }
+
+    .tab, .filter-pill {
+      background: #f3ebd5;
+      color: var(--muted);
+      border: 1px solid rgba(65, 88, 58, 0.16);
+    }
+
+    .tab.active, .filter-pill.active {
+      background: var(--sage);
+      color: white;
+    }
+
+    .topbar {
+      display: grid;
+      grid-template-columns: 1.3fr .8fr .8fr;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .book-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(245px, 1fr));
+      gap: 14px;
+    }
+
+    .book-card {
+      background: var(--card);
+      border: 1px solid rgba(127, 155, 118, 0.24);
+      border-radius: 20px;
+      padding: 16px;
+      box-shadow: 0 10px 22px rgba(47, 38, 24, 0.08);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .book-card::before {
+      content: '';
+      position: absolute;
+      width: 90px;
+      height: 90px;
+      border-radius: 50%;
+      background: rgba(246, 201, 69, 0.16);
+      right: -34px;
+      top: -36px;
+    }
+
+    .cover-wrap {
+      width: 100%;
+      height: 210px;
+      border-radius: 16px;
+      overflow: hidden;
+      background: linear-gradient(135deg, #f3ebd5, #e9f0e4);
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--muted);
+      font-weight: 700;
+      position: relative;
+      z-index: 1;
+    }
+
+    .cover-wrap img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .book-title {
+      font-size: 1.18rem;
+      font-weight: 800;
+      color: var(--sage-dark);
+      padding-right: 25px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .book-author {
+      color: var(--muted);
+      margin: 4px 0 10px;
+      font-style: italic;
+    }
+
+    .meta {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin: 9px 0;
+    }
+
+    .chip {
+      background: #f3ebd5;
+      color: #67563f;
+      border-radius: 999px;
+      padding: 5px 8px;
+      font-size: 0.78rem;
+      border: 1px solid rgba(47, 38, 24, 0.08);
+    }
+
+    .chip.status { background: #e8f0e2; color: var(--sage-dark); }
+    .chip.rating { background: #fff0b7; color: #6e4c00; }
+
+    .card-actions {
+      display: flex;
+      gap: 7px;
+      flex-wrap: wrap;
+      margin-top: 12px;
+    }
+
+    .card-actions button {
+      padding: 8px 10px;
+      font-size: 0.8rem;
+    }
+
+    .empty {
+      text-align: center;
+      padding: 44px 14px;
+      color: var(--muted);
+      border: 2px dashed rgba(127, 155, 118, 0.28);
+      border-radius: 18px;
+      background: rgba(255,255,255,0.3);
+    }
+
+    .small-note {
+      font-size: 0.82rem;
+      color: var(--muted);
+      margin-top: 6px;
+    }
+
+    .footer-tools {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 16px;
+      padding-top: 14px;
+      border-top: 1px solid rgba(127, 155, 118, 0.22);
+    }
+
+    .sunflower-options {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 6px;
+      align-items: stretch;
+    }
+
+    .sunflower-btn {
+      background: #f3ebd5;
+      color: #3b2900;
+      padding: 10px 7px;
+      border-radius: 12px;
+      font-size: 1rem;
+      line-height: 1.1;
+      min-height: 44px;
+      border: 1px solid rgba(194, 139, 0, 0.18);
+      box-shadow: none;
+    }
+
+    .sunflower-btn.active {
+      background: var(--sunflower);
+      color: #2f2100;
+      box-shadow: 0 0 0 3px rgba(246, 201, 69, 0.28);
+    }
+
+    .sunflower-small {
+      display: block;
+      font-size: 0.68rem;
+      margin-top: 3px;
+      color: rgba(47, 38, 24, 0.72);
+    }
+
+    @media (max-width: 980px) {
+      .dashboard { grid-template-columns: repeat(3, 1fr); }
+      .layout { grid-template-columns: 1fr; }
+      .panel { position: static; }
+    }
+
+    @media (max-width: 620px) {
+      .dashboard { grid-template-columns: repeat(2, 1fr); }
+      .topbar, .row { grid-template-columns: 1fr; }
+      header { padding-top: 24px; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>🌻 Laura's Library</h1>
+    <div class="subtitle">A cosy home for every physical book, Kindle read, audiobook, reread, wishlist pick, and comfort favourite.</div>
+  </header>
+
+  <main class="app">
+    <section class="dashboard" id="dashboard"></section>
+
+    <section class="layout">
+      <aside class="panel">
+        <h2 id="formTitle">Add a Book</h2>
+        <form id="bookForm">
+          <input type="hidden" id="bookId" />
+
+          <label for="isbn">Quick Add by ISBN</label>
+          <div class="isbn-row">
+            <input id="isbn" placeholder="Paste ISBN, e.g. 9780141439518" />
+            <button class="secondary" type="button" id="fetchIsbn">Fetch</button>
+          </div>
+          <div class="small-note" id="isbnStatus">Optional. Works best for physical books.</div>
+
+          <label for="coverUrl">Cover Image URL</label>
+          <input id="coverUrl" placeholder="Auto-filled from ISBN when available" />
+
+          <label for="title">Title *</label>
+          <input id="title" required placeholder="e.g. Pride and Prejudice" />
+
+          <label for="author">Author</label>
+          <input id="author" placeholder="e.g. Jane Austen" />
+
+          <div class="row">
+            <div>
+              <label for="series">Series</label>
+              <input id="series" placeholder="Optional" />
+            </div>
+            <div>
+              <label for="seriesNumber">Book #</label>
+              <input id="seriesNumber" type="number" min="0" step="0.5" placeholder="Optional" />
+            </div>
+          </div>
+
+          <div class="row">
+            <div>
+              <label for="format">Source / Format</label>
+              <select id="format">
+                <option>Physical</option>
+                <option>Kindle</option>
+                <option>Audiobook</option>
+                <option>Multiple</option>
+              </select>
+            </div>
+            <div>
+              <label for="status">Status</label>
+              <select id="status">
+                <option>Wishlist</option>
+                <option>Owned</option>
+                <option>Reading</option>
+                <option>Finished</option>
+                <option>DNF</option>
+              </select>
+            </div>
+          </div>
+
+          <label for="rating">Sunflower Rating</label>
+          <select id="rating">
+            <option value="0">No rating yet</option>
+            <option value="1">1 🌻</option>
+            <option value="2">2 🌻🌻</option>
+            <option value="3">3 🌻🌻🌻</option>
+            <option value="4">4 🌻🌻🌻🌻</option>
+            <option value="5">5 🌻🌻🌻🌻🌻</option>
+          </select>
+
+          <label for="moodTags">Mood Tags</label>
+          <input id="moodTags" placeholder="cosy, dark, comfort read, emotional" />
+          <div class="small-note">Separate tags with commas.</div>
+
+          <label for="feelTags">Feels / Tropes Tags</label>
+          <input id="feelTags" placeholder="slow burn, found family, heartbreak" />
+
+          <div class="row">
+            <div>
+              <label for="timesRead">Times Read</label>
+              <input id="timesRead" type="number" min="0" value="0" />
+            </div>
+            <div>
+              <label for="lastRead">Last Read</label>
+              <input id="lastRead" type="date" />
+            </div>
+          </div>
+
+          <div class="row">
+            <div>
+              <label for="dateStarted">Date Started</label>
+              <input id="dateStarted" type="date" />
+            </div>
+            <div>
+              <label for="dateFinished">Date Finished</label>
+              <input id="dateFinished" type="date" />
+            </div>
+          </div>
+
+          <label for="notes">Notes</label>
+          <textarea id="notes" placeholder="Thoughts, quotes, reread notes, why Laura loves it..."></textarea>
+
+          <div class="buttons">
+            <button class="primary" type="submit">Save Book</button>
+            <button class="secondary" type="button" id="resetForm">Clear</button>
+          </div>
+        </form>
+
+        <div class="footer-tools">
+          <button class="secondary" id="exportData">Export Backup</button>
+          <button class="secondary" id="importData">Import Backup</button>
+          <button class="danger" id="clearAll">Clear All</button>
+          <input id="importFile" type="file" accept="application/json" style="display:none" />
+        </div>
+      </aside>
+
+      <section class="library-panel">
+        <div class="tabs" id="tabs"></div>
+
+        <div class="topbar">
+          <input id="search" placeholder="Search title, author, series, notes or tags..." />
+          <select id="formatFilter">
+            <option value="All">All Formats</option>
+            <option>Physical</option>
+            <option>Kindle</option>
+            <option>Audiobook</option>
+            <option>Multiple</option>
+          </select>
+          <select id="sortBy">
+            <option value="newest">Newest Added</option>
+            <option value="title">Title A-Z</option>
+            <option value="author">Author A-Z</option>
+            <option value="rating">Highest Rated</option>
+            <option value="lastRead">Last Read</option>
+            <option value="timesRead">Most Reread</option>
+          </select>
+        </div>
+
+        <div class="filters" id="tagFilters"></div>
+        <div id="bookGrid" class="book-grid"></div>
+      </section>
+    </section>
+  </main>
+
+  <script>
+    const STORAGE_KEY = 'laurasLibraryBooksV1';
+    const OPEN_LIBRARY_BASE = 'https://openlibrary.org';
+
+    let books = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+    let activeTab = 'All';
+    let activeTag = 'All';
+
+    const tabs = ['All', 'Wishlist', 'Owned', 'Reading', 'Finished', 'DNF', 'Rereads'];
+
+    const $ = (id) => document.getElementById(id);
+
+    function save() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(books));
+    }
+
+    function splitTags(value) {
+      return value
+        .split(',')
+        .map(tag => tag.trim())
+        .filter(Boolean);
+    }
+
+    function sunflowerRating(rating) {
+      const value = Number(rating || 0);
+      return value ? '🌻'.repeat(value) + '☆'.repeat(5 - value) : 'Not rated';
+    }
+
+    function cleanIsbn(value) {
+      return String(value || '').replace(/[^0-9Xx]/g, '').toUpperCase();
+    }
+
+    function setIsbnStatus(message) {
+      $('isbnStatus').textContent = message;
+    }
+
+    async function fetchBookByIsbn() {
+      const isbn = cleanIsbn($('isbn').value);
+      if (!isbn) {
+        setIsbnStatus('Add an ISBN first. No ISBN, no magic.');
+        return;
+      }
+
+      setIsbnStatus('Looking up book details...');
+      $('fetchIsbn').disabled = true;
+      $('fetchIsbn').textContent = 'Fetching...';
+
+      try {
+        const response = await fetch(`${OPEN_LIBRARY_BASE}/isbn/${isbn}.json`);
+        if (!response.ok) throw new Error('Book not found');
+        const data = await response.json();
+
+        $('isbn').value = isbn;
+        $('title').value = data.title || $('title').value;
+        $('coverUrl').value = `https://covers.openlibrary.org/b/isbn/${isbn}-L.jpg`;
+
+        if (Array.isArray(data.authors) && data.authors.length) {
+          const authorNames = await Promise.all(data.authors.slice(0, 3).map(async (author) => {
+            try {
+              const authorResponse = await fetch(`${OPEN_LIBRARY_BASE}${author.key}.json`);
+              if (!authorResponse.ok) return '';
+              const authorData = await authorResponse.json();
+              return authorData.name || '';
+            } catch {
+              return '';
+            }
+          }));
+          const cleanAuthors = authorNames.filter(Boolean).join(', ');
+          if (cleanAuthors) $('author').value = cleanAuthors;
+        }
+
+        setIsbnStatus('Found it. Check the details before saving.');
+      } catch (error) {
+        setIsbnStatus('Could not find that ISBN. Add it manually and move on.');
+      } finally {
+        $('fetchIsbn').disabled = false;
+        $('fetchIsbn').textContent = 'Fetch';
+      }
+    }
+
+    function today() {
+      return new Date().toISOString().slice(0, 10);
+    }
+
+    function sameYear(dateStr, year) {
+      return dateStr && new Date(dateStr).getFullYear() === year;
+    }
+
+    function sameMonth(dateStr, year, month) {
+      if (!dateStr) return false;
+      const d = new Date(dateStr);
+      return d.getFullYear() === year && d.getMonth() === month;
+    }
+
+    function renderRatingButtons(selected = 0) {
+      const wrap = $('ratingButtons');
+      if (!wrap) return;
+    }
+
+    function renderDashboard() {
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = now.getMonth();
+      const finished = books.filter(b => b.status === 'Finished');
+      const readThisYear = finished.filter(b => sameYear(b.dateFinished || b.lastRead, year)).length;
+      const readThisMonth = finished.filter(b => sameMonth(b.dateFinished || b.lastRead, year, month)).length;
+      const currentReads = books.filter(b => b.status === 'Reading').length;
+      const wishlist = books.filter(b => b.status === 'Wishlist').length;
+      const rereads = books.reduce((sum, b) => sum + Math.max(0, Number(b.timesRead || 0) - 1), 0);
+      const rated = books.filter(b => Number(b.rating) > 0);
+      const avgRating = rated.length ? (rated.reduce((sum, b) => sum + Number(b.rating), 0) / rated.length).toFixed(1) : '0.0';
+
+      const stats = [
+        [books.length, 'Total Books'],
+        [readThisYear, 'Read This Year'],
+        [readThisMonth, 'Read This Month'],
+        [currentReads, 'Currently Reading'],
+        [wishlist, 'Wishlist'],
+        [avgRating + ' 🌻', 'Average Rating']
+      ];
+
+      $('dashboard').innerHTML = stats.map(([value, label]) => `
+        <div class="stat-card">
+          <div class="stat-value">${value}</div>
+          <div class="stat-label">${label}</div>
+        </div>
+      `).join('');
+    }
+
+    function renderTabs() {
+      $('tabs').innerHTML = tabs.map(tab => `
+        <button class="tab ${activeTab === tab ? 'active' : ''}" data-tab="${tab}">${tab}</button>
+      `).join('');
+
+      document.querySelectorAll('.tab').forEach(btn => {
+        btn.onclick = () => {
+          activeTab = btn.dataset.tab;
+          render();
+        };
+      });
+    }
+
+    function allTags() {
+      const tagSet = new Set();
+      books.forEach(book => [...(book.moodTags || []), ...(book.feelTags || [])].forEach(t => tagSet.add(t)));
+      return ['All', ...Array.from(tagSet).sort((a,b) => a.localeCompare(b))];
+    }
+
+    function renderTagFilters() {
+      const tags = allTags();
+      $('tagFilters').innerHTML = tags.slice(0, 18).map(tag => `
+        <button class="filter-pill ${activeTag === tag ? 'active' : ''}" data-tag="${tag}">${tag}</button>
+      `).join('');
+
+      document.querySelectorAll('.filter-pill').forEach(btn => {
+        btn.onclick = () => {
+          activeTag = btn.dataset.tag;
+          render();
+        };
+      });
+    }
+
+    function filteredBooks() {
+      const query = $('search').value.trim().toLowerCase();
+      const format = $('formatFilter').value;
+      const sortBy = $('sortBy').value;
+
+      let result = books.filter(book => {
+        const combined = [
+          book.title, book.author, book.series, book.notes,
+          ...(book.moodTags || []), ...(book.feelTags || [])
+        ].join(' ').toLowerCase();
+
+        const matchesQuery = !query || combined.includes(query);
+        const matchesFormat = format === 'All' || book.format === format;
+        const matchesTab = activeTab === 'All'
+          || (activeTab === 'Rereads' ? Number(book.timesRead || 0) > 1 : book.status === activeTab);
+        const tags = [...(book.moodTags || []), ...(book.feelTags || [])];
+        const matchesTag = activeTag === 'All' || tags.includes(activeTag);
+
+        return matchesQuery && matchesFormat && matchesTab && matchesTag;
+      });
+
+      result.sort((a, b) => {
+        if (sortBy === 'title') return (a.title || '').localeCompare(b.title || '');
+        if (sortBy === 'author') return (a.author || '').localeCompare(b.author || '');
+        if (sortBy === 'rating') return Number(b.rating || 0) - Number(a.rating || 0);
+        if (sortBy === 'lastRead') return (b.lastRead || b.dateFinished || '').localeCompare(a.lastRead || a.dateFinished || '');
+        if (sortBy === 'timesRead') return Number(b.timesRead || 0) - Number(a.timesRead || 0);
+        return Number(b.createdAt || 0) - Number(a.createdAt || 0);
+      });
+
+      return result;
+    }
+
+    function renderBooks() {
+      const grid = $('bookGrid');
+      const result = filteredBooks();
+
+      if (!result.length) {
+        grid.innerHTML = `<div class="empty">No books found. Add one, change the filters, or stop pretending Laura won't fill this with hundreds of entries.</div>`;
+        return;
+      }
+
+      grid.innerHTML = result.map(book => {
+        const allBookTags = [...(book.moodTags || []), ...(book.feelTags || [])];
+        return `
+          <article class="book-card">
+            <div class="cover-wrap">${book.coverUrl ? `<img src="${escapeHtml(book.coverUrl)}" alt="Cover for ${escapeHtml(book.title)}" onerror="this.parentElement.textContent='No cover';" />` : 'No cover'}</div>
+            <div class="book-title">${escapeHtml(book.title)}</div>
+            <div class="book-author">${escapeHtml(book.author || 'Unknown author')}</div>
+            <div class="meta">
+              <span class="chip status">${escapeHtml(book.status)}</span>
+              <span class="chip">${escapeHtml(book.format)}</span>
+              <span class="chip rating">${sunflowerRating(book.rating)}</span>
+              ${book.isbn ? `<span class="chip">ISBN: ${escapeHtml(book.isbn)}</span>` : ''}
+              ${book.series ? `<span class="chip">${escapeHtml(book.series)}${book.seriesNumber ? ' #' + escapeHtml(book.seriesNumber) : ''}</span>` : ''}
+              <span class="chip">Read ${Number(book.timesRead || 0)}x</span>
+              ${book.lastRead ? `<span class="chip">Last read: ${book.lastRead}</span>` : ''}
+            </div>
+            ${allBookTags.length ? `<div class="meta">${allBookTags.map(tag => `<span class="chip">${escapeHtml(tag)}</span>`).join('')}</div>` : ''}
+            ${book.notes ? `<p>${escapeHtml(book.notes)}</p>` : ''}
+            <div class="card-actions">
+              <button class="secondary" onclick="editBook('${book.id}')">Edit</button>
+              <button class="secondary" onclick="markFinished('${book.id}')">Finished</button>
+              <button class="secondary" onclick="increaseRead('${book.id}')">+ Reread</button>
+              <button class="danger" onclick="deleteBook('${book.id}')">Delete</button>
+            </div>
+          </article>
+        `;
+      }).join('');
+    }
+
+    function escapeHtml(value) {
+      return String(value || '')
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#039;');
+    }
+
+    function render() {
+      renderDashboard();
+      renderTabs();
+      renderTagFilters();
+      renderBooks();
+    }
+
+    $('bookForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+
+      const id = $('bookId').value || crypto.randomUUID();
+      const existing = books.find(b => b.id === id);
+      const book = {
+        id,
+        isbn: cleanIsbn($('isbn').value),
+        coverUrl: $('coverUrl').value.trim(),
+        title: $('title').value.trim(),
+        author: $('author').value.trim(),
+        series: $('series').value.trim(),
+        seriesNumber: $('seriesNumber').value,
+        format: $('format').value,
+        status: $('status').value,
+        rating: Number($('rating').value),
+        moodTags: splitTags($('moodTags').value),
+        feelTags: splitTags($('feelTags').value),
+        timesRead: Number($('timesRead').value || 0),
+        lastRead: $('lastRead').value,
+        dateStarted: $('dateStarted').value,
+        dateFinished: $('dateFinished').value,
+        notes: $('notes').value.trim(),
+        createdAt: existing?.createdAt || Date.now(),
+        updatedAt: Date.now()
+      };
+
+      books = existing ? books.map(b => b.id === id ? book : b) : [book, ...books];
+      save();
+      resetForm();
+      render();
+    });
+
+    function resetForm() {
+      $('bookForm').reset();
+      $('bookId').value = '';
+      setIsbnStatus('Optional. Works best for physical books.');
+      $('rating').value = 0;
+      $('timesRead').value = 0;
+      $('formTitle').textContent = 'Add a Book';
+    }
+
+    $('resetForm').onclick = resetForm;
+
+    window.editBook = function(id) {
+      const book = books.find(b => b.id === id);
+      if (!book) return;
+      $('bookId').value = book.id;
+      $('isbn').value = book.isbn || '';
+      $('coverUrl').value = book.coverUrl || '';
+      $('title').value = book.title || '';
+      $('author').value = book.author || '';
+      $('series').value = book.series || '';
+      $('seriesNumber').value = book.seriesNumber || '';
+      $('format').value = book.format || 'Physical';
+      $('status').value = book.status || 'Owned';
+      $('rating').value = book.rating || 0;
+      $('moodTags').value = (book.moodTags || []).join(', ');
+      $('feelTags').value = (book.feelTags || []).join(', ');
+      $('timesRead').value = book.timesRead || 0;
+      $('lastRead').value = book.lastRead || '';
+      $('dateStarted').value = book.dateStarted || '';
+      $('dateFinished').value = book.dateFinished || '';
+      $('notes').value = book.notes || '';
+      $('formTitle').textContent = 'Edit Book';
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    window.markFinished = function(id) {
+      books = books.map(book => {
+        if (book.id !== id) return book;
+        const currentReads = Number(book.timesRead || 0);
+        return {
+          ...book,
+          status: 'Finished',
+          timesRead: currentReads > 0 ? currentReads : 1,
+          dateFinished: book.dateFinished || today(),
+          lastRead: today(),
+          updatedAt: Date.now()
+        };
+      });
+      save();
+      render();
+    }
+
+    window.increaseRead = function(id) {
+      books = books.map(book => book.id === id ? {
+        ...book,
+        timesRead: Number(book.timesRead || 0) + 1,
+        status: 'Finished',
+        lastRead: today(),
+        dateFinished: today(),
+        updatedAt: Date.now()
+      } : book);
+      save();
+      render();
+    }
+
+    window.deleteBook = function(id) {
+      const book = books.find(b => b.id === id);
+      if (!book) return;
+      if (!confirm(`Delete "${book.title}"?`)) return;
+      books = books.filter(b => b.id !== id);
+      save();
+      render();
+    }
+
+    ['search', 'formatFilter', 'sortBy'].forEach(id => $(id).addEventListener('input', render));
+
+    $('fetchIsbn').onclick = fetchBookByIsbn;
+
+    $('exportData').onclick = () => {
+      const blob = new Blob([JSON.stringify(books, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `lauras-library-backup-${today()}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+    };
+
+    $('importData').onclick = () => $('importFile').click();
+
+    $('importFile').onchange = async (event) => {
+      const file = event.target.files[0];
+      if (!file) return;
+      try {
+        const imported = JSON.parse(await file.text());
+        if (!Array.isArray(imported)) throw new Error('Invalid file');
+        if (!confirm('Importing will replace the current library on this device. Continue?')) return;
+        books = imported;
+        save();
+        render();
+      } catch (err) {
+        alert('That backup file does not look valid.');
+      } finally {
+        event.target.value = '';
+      }
+    };
+
+    $('clearAll').onclick = () => {
+      if (!books.length) return;
+      if (!confirm('Clear every book from this device? Export a backup first unless you enjoy pain.')) return;
+      books = [];
+      save();
+      resetForm();
+      render();
+    };
+
+    render();
+  </script>
+</body>
+</html>
