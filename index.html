@@ -395,7 +395,7 @@
     <section class="layout">
       <aside class="panel">
         <h2 id="formTitle">Add a Book</h2>
-        <form id="bookForm">
+        <form id="bookForm" onsubmit="saveBook(event); return false;">
           <input type="hidden" id="bookId" />
 
           <label for="isbn">Quick Add by ISBN</label>
@@ -516,7 +516,7 @@
           <textarea id="notes" placeholder="Thoughts, quotes, reread notes, why Laura loves it..."></textarea>
 
           <div class="buttons">
-            <button class="primary" type="submit">Save Book</button>
+            <button class="primary" type="button" id="saveBookButton">Save Book</button>
             <button class="secondary" type="button" id="resetForm">Clear</button>
           </div>
         </form>
@@ -826,11 +826,18 @@
       renderBooks();
     }
 
-    $('bookForm').addEventListener('submit', (e) => {
-      e.preventDefault();
+    function saveBook(event) {
+      if (event) event.preventDefault();
+
+      if (!$('title').value.trim()) {
+        alert('Add a title first. Laura cannot file a mystery book.');
+        return false;
+      }
 
       const id = $('bookId').value || crypto.randomUUID();
       const existing = books.find(b => b.id === id);
+      const readDates = $('rereadDates').value.split('
+').map(d => d.trim()).filter(Boolean);
       const book = {
         id,
         isbn: cleanIsbn($('isbn').value),
@@ -846,12 +853,10 @@
         readReason: $('readReason').value,
         moodTags: splitTags($('moodTags').value),
         feelTags: splitTags($('feelTags').value),
-        timesRead: Number($('timesRead').value || 0),
+        timesRead: Number($('timesRead').value || readDates.length || 0),
         pageCount: Number($('pageCount').value || 0),
-        rereadDates: $('rereadDates').value.split('
-').map(d => d.trim()).filter(Boolean),
-        lastRead: ($('rereadDates').value.split('
-').map(d => d.trim()).filter(Boolean).slice(-1)[0]) || $('dateFinished').value || '',
+        rereadDates: readDates,
+        lastRead: readDates.slice(-1)[0] || $('dateFinished').value || '',
         dateStarted: $('dateStarted').value,
         dateFinished: $('dateFinished').value,
         notes: $('notes').value.trim(),
@@ -863,7 +868,11 @@
       save();
       resetForm();
       render();
-    });
+      return false;
+    }
+
+    $('bookForm').addEventListener('submit', saveBook);
+    $('saveBookButton').addEventListener('click', saveBook);
 
     function resetForm() {
       $('bookForm').reset();
