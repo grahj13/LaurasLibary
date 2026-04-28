@@ -401,6 +401,48 @@
       margin-top: 6px;
     }
 
+    .reading-log-panel {
+      padding-bottom: 16px;
+      margin-bottom: 18px;
+      border-bottom: 1px solid rgba(127, 155, 118, 0.22);
+    }
+
+    .read-today-row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .reading-log-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+      margin-top: 10px;
+    }
+
+    .reading-day-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 9px;
+      border-radius: 999px;
+      background: #e8f0e2;
+      color: var(--sage-dark);
+      border: 1px solid rgba(65, 88, 58, 0.18);
+      font-size: 0.82rem;
+      font-weight: 700;
+    }
+
+    .reading-day-pill button {
+      padding: 0 4px;
+      background: transparent;
+      color: var(--danger);
+      box-shadow: none;
+      border-radius: 50%;
+      font-size: 0.9rem;
+    }
+
     .footer-tools {
       display: flex;
       gap: 10px;
@@ -474,6 +516,16 @@
 
     <section class="layout">
       <aside class="panel">
+        <section class="reading-log-panel">
+          <h2>Daily Reading Log</h2>
+          <div class="read-today-row">
+            <input id="readingLogDate" type="date" />
+            <button class="primary" type="button" id="markReadToday">I Read Today</button>
+          </div>
+          <div class="small-note" id="readingLogStatus">Track days Laura reads, even if she does not finish a book.</div>
+          <div class="reading-log-list" id="readingLogList"></div>
+        </section>
+
         <h2 id="formTitle">Add a Book</h2>
         <form id="bookForm" onsubmit="saveBook(event); return false;">
           <input type="hidden" id="bookId" />
@@ -649,9 +701,11 @@
 
   <script>
     const STORAGE_KEY = 'laurasLibraryBooksV1';
+    const READING_LOG_KEY = 'laurasLibraryReadingLogV1';
     const OPEN_LIBRARY_BASE = 'https://openlibrary.org';
 
     let books = [];
+    let readingLog = [];
 
     function loadBooks() {
       try {
@@ -661,6 +715,15 @@
       } catch (error) {
         books = [];
         console.error('Could not load Laura\'s Library data:', error);
+      }
+
+      try {
+        const savedLog = localStorage.getItem(READING_LOG_KEY);
+        readingLog = savedLog ? JSON.parse(savedLog) : [];
+        if (!Array.isArray(readingLog)) readingLog = [];
+      } catch (error) {
+        readingLog = [];
+        console.error('Could not load Laura\'s reading log:', error);
       }
     }
     let activeTab = 'All';
@@ -673,6 +736,10 @@
 
     function save() {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(books));
+    }
+
+    function saveReadingLog() {
+      localStorage.setItem(READING_LOG_KEY, JSON.stringify(readingLog));
     }
 
     function splitTags(value) {
@@ -743,6 +810,48 @@
       return new Date().toISOString().slice(0, 10);
     }
 
+    function daysBetween(dateA, dateB) {
+      const a = new Date(dateA + 'T00:00:00');
+      const b = new Date(dateB + 'T00:00:00');
+      return Math.round((b - a) / 86400000);
+    }
+
+    function uniqueSortedReadingDays() {
+      return [...new Set(readingLog)].sort((a, b) => b.localeCompare(a));
+    }
+
+    function currentReadingStreak() {
+      const days = uniqueSortedReadingDays();
+      if (!days.length) return 0;
+
+      let anchor = today();
+      if (days[0] !== anchor && daysBetween(days[0], anchor) > 1) return 0;
+      if (days[0] !== anchor) anchor = days[0];
+
+      let streak = 0;
+      for (let i = 0; i < days.length; i++) {
+        const expected = new Date(anchor + 'T00:00:00');
+        expected.setDate(expected.getDate() - i);
+        const expectedStr = expected.toISOString().slice(0, 10);
+        if (days[i] === expectedStr) streak++;
+        else break;
+      }
+      return streak;
+    }
+
+    function longestReadingStreak() {
+      const days = uniqueSortedReadingDays().sort((a, b) => a.localeCompare(b));
+      if (!days.length) return 0;
+      let longest = 1;
+      let current = 1;
+      for (let i = 1; i < days.length; i++) {
+        if (daysBetween(days[i - 1], days[i]) === 1) current++;
+        else current = 1;
+        longest = Math.max(longest, current);
+      }
+      return longest;
+    }
+
     function sameYear(dateStr, year) {
       return dateStr && new Date(dateStr).getFullYear() === year;
     }
@@ -807,17 +916,19 @@
       const totalPagesRead = books.reduce((sum, b) => sum + (Number(b.pageCount || 0) * Number(b.timesRead || 0)), 0);
       const yearlyTarget = Number(localStorage.getItem('laurasLibraryYearlyTarget') || 50);
       const remainingTarget = Math.max(0, yearlyTarget - readThisYear);
-      const currentReads = books.filter(b => b.status === 'Reading').length;
-      const wishlist = books.filter(b => b.status === 'Wishlist').length;
-      const rereads = books.reduce((sum, b) => sum + Math.max(0, Number(b.timesRead || 0) - 1), 0);
       const rated = books.filter(b => Number(b.rating) > 0);
       const avgRating = rated.length ? (rated.reduce((sum, b) => sum + Number(b.rating), 0) / rated.length).toFixed(1) : '0.0';
+      const readingDaysThisMonth = readingLog.filter(d => sameMonth(d, year, month)).length;
+      const streakNow = currentReadingStreak();
+      const streakBest = longestReadingStreak();
 
       const stats = [
         [books.length, 'Total Books'],
         [readThisYear, 'Read This Year'],
-        [readThisMonth, 'Read This Month'],
-        [remainingTarget, `Left of ${yearlyTarget} Target`],
+        [readThisMonth, 'Books Read This Month'],
+        [streakNow + ' 🔥', 'Current Reading Streak'],
+        [streakBest + ' 🏆', 'Best Reading Streak'],
+        [readingDaysThisMonth, 'Reading Days This Month'],
         [totalPagesRead.toLocaleString(), 'Total Pages Read'],
         [avgRating + ' 🌻', 'Average Rating']
       ];
@@ -950,8 +1061,48 @@
         .replaceAll("'", '&#039;');
     }
 
+    function renderReadingLog() {
+      const dateInput = $('readingLogDate');
+      const list = $('readingLogList');
+      if (!dateInput || !list) return;
+
+      if (!dateInput.value) dateInput.value = today();
+      const days = uniqueSortedReadingDays();
+
+      if (!days.length) {
+        list.innerHTML = '<span class="small-note">No reading days logged yet.</span>';
+        return;
+      }
+
+      list.innerHTML = days.slice(0, 12).map(date => `
+        <span class="reading-day-pill">
+          ${escapeHtml(date)}
+          <button type="button" onclick="removeReadingDay('${date}')" aria-label="Remove reading day">×</button>
+        </span>
+      `).join('') + (days.length > 12 ? `<span class="small-note">+${days.length - 12} older days</span>` : '');
+    }
+
+    function markReadingDay() {
+      const date = $('readingLogDate').value || today();
+      if (!readingLog.includes(date)) {
+        readingLog.push(date);
+        $('readingLogStatus').textContent = `Logged ${date}. Streak updated.`;
+      } else {
+        $('readingLogStatus').textContent = `${date} is already logged.`;
+      }
+      saveReadingLog();
+      render();
+    }
+
+    window.removeReadingDay = function(date) {
+      readingLog = readingLog.filter(d => d !== date);
+      saveReadingLog();
+      render();
+    }
+
     function render() {
       renderDashboard();
+      renderReadingLog();
       renderTabs();
       renderTagFilters();
       renderBooks();
@@ -1109,6 +1260,7 @@
     ['search', 'formatFilter', 'genreFilter', 'sortBy'].forEach(id => $(id).addEventListener('input', render));
 
     $('fetchIsbn').onclick = fetchBookByIsbn;
+    $('markReadToday').onclick = markReadingDay;
     if ($('addReadDate')) $('addReadDate').onclick = addFormReadDate;
 
     $('exportData').onclick = () => {
@@ -1151,6 +1303,7 @@
 
     function startApp() {
       loadBooks();
+      if ($('readingLogDate')) $('readingLogDate').value = today();
       renderFormReadDates();
       render();
     }
