@@ -266,7 +266,7 @@
       <button class="nav-btn" data-view="shelves">Shelves</button>
       <button class="nav-btn" data-view="achievements">Achievements</button>
       <button class="nav-btn" data-view="yearReview">Year Review</button>
-      <button class="secondary" id="themeBtn" type="button">Toggle Dark Mode</button>
+      <button class="secondary" id="themeBtn" type="button">Toggle Dark Academia</button>
     </div>
 
     <section class="dashboard" id="dashboard"></section>
@@ -421,6 +421,14 @@
 
       <section class="library-panel">
         <section id="view-library" class="app-view">
+          <section class="section" id="currentShelfSection">
+            <h2>Currently Reading</h2>
+            <div id="currentShelf" class="book-grid"></div>
+          </section>
+          <section class="section" id="recommendationSection">
+            <h2>Laura Might Like Next</h2>
+            <div id="recommendationShelf" class="book-grid"></div>
+          </section>
           <div class="tabs" id="tabs"></div>
           <div class="topbar">
             <input id="search" placeholder="Search book, author, genre, unread, shelf, mood, tags or notes..." />
@@ -565,22 +573,47 @@
       result.sort((a,b) => sort === 'title' ? (a.title||'').localeCompare(b.title||'') : sort === 'author' ? (a.author||'').localeCompare(b.author||'') : sort === 'rating' ? Number(b.rating||0)-Number(a.rating||0) : sort === 'lastRead' ? getLastRead(b).localeCompare(getLastRead(a)) : sort === 'timesRead' ? bookReadCount(b)-bookReadCount(a) : sort === 'progress' ? Number(b.progress||0)-Number(a.progress||0) : Number(b.createdAt||0)-Number(a.createdAt||0));
       return result;
     }
+    function recommendationScore(book) {
+      let score = 0;
+      if (book.status !== 'TBR' && book.status !== 'Wishlist' && book.status !== 'Owned') return -999;
+      const fiveStars = books.filter(b => Number(b.rating) >= 4);
+      const favouriteGenres = new Set(fiveStars.map(b => b.genre).filter(Boolean));
+      const favouriteMoods = new Set(fiveStars.flatMap(b => b.moodTags || []));
+      const favouriteShelves = new Set(fiveStars.flatMap(b => b.shelves || []));
+      if (favouriteGenres.has(book.genre)) score += 4;
+      (book.moodTags || []).forEach(tag => { if (favouriteMoods.has(tag)) score += 2; });
+      (book.shelves || []).forEach(shelf => { if (favouriteShelves.has(shelf)) score += 2; });
+      if (book.status === 'TBR') score += 2;
+      if (book.status === 'Wishlist') score += 1;
+      if (book.readType === 'Recommended Book') score += 1;
+      return score;
+    }
+
+    function bookCard(book, compact = false) {
+      const dates = uniqueDates(book.readDates||[], 'desc'), tags = [...(book.moodTags||[]), ...(book.feelTags||[]), ...(book.shelves||[])];
+      return `<article class="book-card">
+          <div class="cover-wrap">${book.coverUrl ? `<img src="${escapeHtml(book.coverUrl)}" alt="Cover for ${escapeHtml(book.title)}" onerror="this.parentElement.textContent='No cover';" />` : 'No cover'}</div>
+          <div class="book-title">${escapeHtml(book.title)}</div><div class="book-author">${escapeHtml(book.author)}</div>
+          ${Number(book.progress||0) > 0 && book.status === 'Reading' ? `<div class="progress-shell"><div class="progress-bar" style="width:${Math.min(100, Number(book.progress||0))}%"></div></div><div class="small-note">${Number(book.progress||0)}% complete</div>` : ''}
+          <div class="meta"><span class="chip status">${escapeHtml(book.status)}</span><span class="chip">${escapeHtml(book.format)}</span><span class="chip rating">${ratingText(book.rating)}</span>${book.genre ? `<span class="chip">${escapeHtml(book.genre)}</span>`:''}${book.readType ? `<span class="chip">${escapeHtml(book.readType)}</span>`:''}${book.series ? `<span class="chip">${escapeHtml(book.series)}${book.seriesNumber ? ' #' + escapeHtml(book.seriesNumber) : ''}</span>`:''}<span class="chip">Read ${bookReadCount(book)}x</span>${book.pageCount ? `<span class="chip">${Number(book.pageCount).toLocaleString()} pages</span>`:''}${dates[0] ? `<span class="chip">Last read: ${escapeHtml(dates[0])}</span>`:''}</div>
+          ${!compact && tags.length ? `<div class="meta">${tags.map(t => `<span class="chip">${escapeHtml(t)}</span>`).join('')}</div>` : ''}
+          ${!compact && dates.length ? `<div class="read-history"><strong>Read dates:</strong>${dates.map(d => `<span>${escapeHtml(d)}</span>`).join('')}</div>`:''}
+          ${!compact && book.notes ? `<p>${escapeHtml(book.notes)}</p>`:''}${!compact && book.quote ? `<p><strong>Quote:</strong> ${escapeHtml(book.quote)}</p>`:''}
+          <div class="card-actions"><button class="secondary" onclick="editBook('${book.id}')">Edit</button><button class="secondary" onclick="finishBook('${book.id}')">Finished</button><button class="secondary" onclick="addTodayReread('${book.id}')">+ Reread</button><button class="secondary" onclick="removeLatestRead('${book.id}')">- Reread</button><button class="danger" onclick="deleteBook('${book.id}')">Delete</button></div>
+        </article>`;
+    }
+
+    function renderCurrentAndRecommendations() {
+      const current = books.filter(b => b.status === 'Reading').sort((a,b) => Number(b.progress||0) - Number(a.progress||0));
+      $('currentShelf').innerHTML = current.length ? current.map(b => bookCard(b, true)).join('') : '<div class="empty">No current reads yet. Mark a book as Reading and track the progress.</div>';
+      const recs = [...books].map(b => ({ book: b, score: recommendationScore(b) })).filter(x => x.score > 0).sort((a,b) => b.score - a.score).slice(0, 3).map(x => x.book);
+      $('recommendationShelf').innerHTML = recs.length ? recs.map(b => bookCard(b, true)).join('') : '<div class="empty">Add more ratings, moods and shelves to unlock smarter personal picks.</div>';
+    }
+
     function renderBooks() {
       const result = filteredBooks();
       if (!result.length) { $('bookGrid').innerHTML = '<div class="empty">No books found. Add one, change filters, or accept Laura has already outgrown your search query.</div>'; return; }
-      $('bookGrid').innerHTML = result.map(b => {
-        const dates = uniqueDates(b.readDates||[], 'desc'), tags = [...(b.moodTags||[]), ...(b.feelTags||[]), ...(b.shelves||[])];
-        return `<article class="book-card">
-          <div class="cover-wrap">${b.coverUrl ? `<img src="${escapeHtml(b.coverUrl)}" alt="Cover for ${escapeHtml(b.title)}" onerror="this.parentElement.textContent='No cover';" />` : 'No cover'}</div>
-          <div class="book-title">${escapeHtml(b.title)}</div><div class="book-author">${escapeHtml(b.author)}</div>
-          ${Number(b.progress||0) > 0 && b.status === 'Reading' ? `<div class="progress-shell"><div class="progress-bar" style="width:${Math.min(100, Number(b.progress||0))}%"></div></div><div class="small-note">${Number(b.progress||0)}% complete</div>` : ''}
-          <div class="meta"><span class="chip status">${escapeHtml(b.status)}</span><span class="chip">${escapeHtml(b.format)}</span><span class="chip rating">${ratingText(b.rating)}</span>${b.genre ? `<span class="chip">${escapeHtml(b.genre)}</span>`:''}${b.readType ? `<span class="chip">${escapeHtml(b.readType)}</span>`:''}${b.series ? `<span class="chip">${escapeHtml(b.series)}${b.seriesNumber ? ' #' + escapeHtml(b.seriesNumber) : ''}</span>`:''}<span class="chip">Read ${bookReadCount(b)}x</span>${b.pageCount ? `<span class="chip">${Number(b.pageCount).toLocaleString()} pages</span>`:''}${dates[0] ? `<span class="chip">Last read: ${escapeHtml(dates[0])}</span>`:''}</div>
-          ${tags.length ? `<div class="meta">${tags.map(t => `<span class="chip">${escapeHtml(t)}</span>`).join('')}</div>` : ''}
-          ${dates.length ? `<div class="read-history"><strong>Read dates:</strong>${dates.map(d => `<span>${escapeHtml(d)}</span>`).join('')}</div>`:''}
-          ${b.notes ? `<p>${escapeHtml(b.notes)}</p>`:''}${b.quote ? `<p><strong>Quote:</strong> ${escapeHtml(b.quote)}</p>`:''}
-          <div class="card-actions"><button class="secondary" onclick="editBook('${b.id}')">Edit</button><button class="secondary" onclick="finishBook('${b.id}')">Finished</button><button class="secondary" onclick="addTodayReread('${b.id}')">+ Reread</button><button class="secondary" onclick="removeLatestRead('${b.id}')">- Reread</button><button class="danger" onclick="deleteBook('${b.id}')">Delete</button></div>
-        </article>`;
-      }).join('');
+      $('bookGrid').innerHTML = result.map(b => bookCard(b)).join('');
     }
 
     function renderInsights() {
@@ -635,7 +668,7 @@
     }
 
     function renderAllViews() { renderInsights(); renderCalendar(); renderShelves(); renderAchievements(); renderYearReview(); }
-    function render() { renderDashboard(); renderGoalsForm(); renderDailyBookOptions(); renderDailyLog(); renderFormReadDates(); renderTabs(); renderTagFilters(); renderBooks(); renderAllViews(); showView(currentView); }
+    function render() { renderDashboard(); renderGoalsForm(); renderDailyBookOptions(); renderDailyLog(); renderFormReadDates(); renderTabs(); renderTagFilters(); renderCurrentAndRecommendations(); renderBooks(); renderAllViews(); showView(currentView); }
     function showView(view) { currentView = view; document.querySelectorAll('.app-view').forEach(v => v.classList.add('hidden')); $(`view-${view}`).classList.remove('hidden'); document.querySelectorAll('.nav-btn').forEach(b => b.classList.toggle('active', b.dataset.view === view)); }
 
     function resetForm() { $('bookForm').reset(); $('bookId').value=''; $('formTitle').textContent='Add a Book'; $('isbnStatus').textContent='Optional. Works best for physical books.'; formReadDates=[]; renderFormReadDates(); }
