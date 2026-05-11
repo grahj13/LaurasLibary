@@ -6,1313 +6,671 @@
   <title>Laura's Library</title>
   <style>
     :root {
-      --cream: #fff8e8;
-      --cream-dark: #f4e8c8;
+      --bg-1: #fff8e8;
+      --bg-2: #f3ead2;
+      --paper: rgba(255, 253, 245, 0.92);
+      --paper-solid: #fffdf5;
       --sunflower: #f6c945;
-      --sunflower-dark: #c28b00;
+      --sunflower-2: #ffd978;
+      --gold: #b47b00;
       --sage: #7f9b76;
-      --sage-dark: #41583a;
+      --sage-dark: #365030;
+      --rose: #d98a7c;
+      --lavender: #9f8fc5;
       --ink: #2f2618;
-      --muted: #7c6f5f;
-      --card: #fffdf5;
+      --muted: #7a6d5d;
       --danger: #b7472a;
-      --shadow: 0 16px 40px rgba(47, 38, 24, 0.14);
-      --radius: 22px;
+      --line: rgba(54, 80, 48, 0.18);
+      --shadow: 0 18px 45px rgba(47, 38, 24, 0.14);
+      --radius: 24px;
+    }
+
+    [data-theme="dark"] {
+      --bg-1: #1f1a15;
+      --bg-2: #2a241d;
+      --paper: rgba(45, 38, 30, 0.92);
+      --paper-solid: #302820;
+      --sunflower: #f6c945;
+      --sunflower-2: #6f5315;
+      --gold: #f6c945;
+      --sage: #9bb893;
+      --sage-dark: #c6dfbd;
+      --rose: #e3a096;
+      --lavender: #c3b2e8;
+      --ink: #fff5de;
+      --muted: #c6bca8;
+      --danger: #ff9a82;
+      --line: rgba(255, 245, 222, 0.16);
+      --shadow: 0 18px 45px rgba(0, 0, 0, 0.28);
     }
 
     * { box-sizing: border-box; }
 
     body {
       margin: 0;
+      min-height: 100vh;
       font-family: Georgia, 'Times New Roman', serif;
+      color: var(--ink);
       background:
         radial-gradient(circle at top left, rgba(246, 201, 69, 0.35), transparent 32%),
-        linear-gradient(135deg, #fff8e8 0%, #f7efd9 45%, #edf4e8 100%);
-      color: var(--ink);
-      min-height: 100vh;
+        radial-gradient(circle at top right, rgba(127, 155, 118, 0.22), transparent 34%),
+        linear-gradient(135deg, var(--bg-1), var(--bg-2));
     }
+
+    button, input, select, textarea { font-family: inherit; }
 
     header {
-      padding: 34px 22px 24px;
-      text-align: center;
+      width: min(1320px, calc(100% - 28px));
+      margin: 0 auto;
+      padding: 28px 0 18px;
     }
 
-    h1 {
-      margin: 0;
-      font-size: clamp(2.3rem, 6vw, 4.8rem);
-      letter-spacing: -1px;
-      color: var(--sage-dark);
+    .hero {
+      background: linear-gradient(135deg, rgba(255,253,245,.9), rgba(255,240,183,.72));
+      border: 1px solid var(--line);
+      border-radius: 32px;
+      box-shadow: var(--shadow);
+      padding: 26px 20px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
     }
+
+    [data-theme="dark"] .hero { background: linear-gradient(135deg, rgba(45,38,30,.94), rgba(73,58,26,.66)); }
+
+    .hero::before,
+    .hero::after {
+      content: "";
+      position: absolute;
+      width: 180px;
+      height: 180px;
+      border-radius: 50%;
+      background: rgba(246, 201, 69, .18);
+    }
+    .hero::before { left: -60px; top: -70px; }
+    .hero::after { right: -70px; bottom: -80px; }
 
     .site-title {
+      position: relative;
+      z-index: 1;
+      margin: 0;
       display: flex;
       align-items: center;
       justify-content: center;
       gap: clamp(10px, 2vw, 22px);
+      font-size: clamp(2.1rem, 6vw, 5rem);
       line-height: 1;
-      flex-wrap: nowrap;
+      color: var(--sage-dark);
+      letter-spacing: -1.5px;
     }
 
-    .title-flower {
-      font-size: clamp(2rem, 4vw, 3.8rem);
-      line-height: 1;
-      flex: 0 0 auto;
-    }
+    .title-flower { font-size: clamp(2rem, 4vw, 3.8rem); flex: 0 0 auto; }
+    .subtitle { position: relative; z-index: 1; margin: 10px auto 0; max-width: 900px; color: var(--muted); font-size: 1.05rem; }
 
-    .subtitle {
-      margin-top: 8px;
-      color: var(--muted);
-      font-size: 1.05rem;
-    }
+    .app { width: min(1320px, calc(100% - 28px)); margin: 0 auto 30px; }
 
-    .app {
-      width: min(1240px, calc(100% - 28px));
-      margin: 0 auto 40px;
+    .top-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin: 14px 0 18px;
     }
 
     .dashboard {
       display: grid;
-      grid-template-columns: repeat(6, 1fr);
-      gap: 14px;
-      margin-bottom: 18px;
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+      gap: 12px;
+      margin-bottom: 16px;
     }
 
-    .stat-card {
-      background: rgba(255, 253, 245, 0.82);
-      border: 1px solid rgba(127, 155, 118, 0.24);
-      border-radius: 18px;
-      padding: 16px;
-      box-shadow: 0 8px 20px rgba(47, 38, 24, 0.08);
+    .card, .stat-card, .panel, .library-panel {
+      background: var(--paper);
+      border: 1px solid var(--line);
+      box-shadow: var(--shadow);
+      border-radius: var(--radius);
       backdrop-filter: blur(10px);
     }
 
-    .stat-value {
-      font-size: 2rem;
-      font-weight: 700;
-      color: var(--sage-dark);
-      line-height: 1;
-    }
+    .stat-card { padding: 15px; border-radius: 20px; box-shadow: 0 10px 24px rgba(47,38,24,.08); }
+    .stat-value { font-size: 1.75rem; font-weight: 900; color: var(--sage-dark); line-height: 1; }
+    .stat-label { margin-top: 7px; color: var(--muted); font-size: .8rem; }
 
-    .stat-label {
-      margin-top: 8px;
-      font-size: 0.85rem;
-      color: var(--muted);
-    }
+    .main-grid { display: grid; grid-template-columns: 410px 1fr; gap: 16px; align-items: start; }
+    .panel { padding: 17px; position: sticky; top: 12px; max-height: calc(100vh - 24px); overflow: auto; }
+    .library-panel { padding: 17px; min-height: 500px; }
 
-    .layout {
-      display: grid;
-      grid-template-columns: 390px 1fr;
-      gap: 18px;
-      align-items: start;
-    }
+    h2 { margin: 0 0 14px; color: var(--sage-dark); font-size: 1.45rem; }
+    h3 { margin: 0 0 10px; color: var(--sage-dark); font-size: 1.08rem; }
 
-    .panel, .library-panel {
-      background: rgba(255, 253, 245, 0.9);
-      border: 1px solid rgba(127, 155, 118, 0.28);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
-    }
-
-    .panel {
-      padding: 18px;
-      position: sticky;
-      top: 14px;
-    }
-
-    .library-panel { padding: 18px; }
-
-    h2 {
-      margin: 0 0 14px;
-      color: var(--sage-dark);
-      font-size: 1.45rem;
-    }
-
-    label {
-      display: block;
-      margin: 12px 0 6px;
-      font-weight: 700;
-      font-size: 0.92rem;
-      color: var(--sage-dark);
-    }
+    label { display: block; margin: 11px 0 6px; font-weight: 900; color: var(--sage-dark); font-size: .9rem; }
 
     input, select, textarea {
       width: 100%;
-      border: 1px solid rgba(65, 88, 58, 0.28);
-      background: #fffaf0;
+      border: 1px solid rgba(54,80,48,.28);
+      background: rgba(255,250,240,.92);
       color: var(--ink);
       border-radius: 14px;
-      padding: 11px 12px;
-      font-family: inherit;
-      font-size: 0.98rem;
+      padding: 10px 11px;
+      font-size: .96rem;
       outline: none;
     }
 
-    textarea { min-height: 78px; resize: vertical; }
+    [data-theme="dark"] input,
+    [data-theme="dark"] select,
+    [data-theme="dark"] textarea { background: rgba(31,26,21,.9); }
 
-    input:focus, select:focus, textarea:focus {
-      border-color: var(--sunflower-dark);
-      box-shadow: 0 0 0 4px rgba(246, 201, 69, 0.22);
-    }
+    textarea { min-height: 82px; resize: vertical; }
+    input:focus, select:focus, textarea:focus { border-color: var(--gold); box-shadow: 0 0 0 4px rgba(246,201,69,.18); }
 
-    .row {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-    }
-
-    .isbn-row,
-    .read-date-row {
-      display: grid;
-      grid-template-columns: 1fr auto;
-      gap: 8px;
-      align-items: center;
-    }
-
-    .isbn-row button,
-    .read-date-row button {
-      height: 44px;
-      white-space: nowrap;
-    }
-
-    .read-date-list {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 7px;
-      margin-top: 8px;
-      min-height: 10px;
-    }
-
-    .read-date-pill {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      background: #fff0b7;
-      color: #5f4200;
-      border: 1px solid rgba(194, 139, 0, 0.22);
-      border-radius: 999px;
-      padding: 6px 9px;
-      font-size: 0.82rem;
-      font-weight: 700;
-    }
-
-    .read-date-pill button {
-      padding: 0 4px;
-      background: transparent;
-      color: var(--danger);
-      box-shadow: none;
-      border-radius: 50%;
-      font-size: 0.9rem;
-    }
-
-    .buttons {
-      display: flex;
-      gap: 10px;
-      margin-top: 16px;
-    }
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; }
+    .action-row { display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: center; }
+    .button-row, .footer-tools { display: flex; flex-wrap: wrap; gap: 9px; margin-top: 14px; }
 
     button {
       border: 0;
       border-radius: 999px;
-      padding: 11px 15px;
-      font-family: inherit;
-      font-weight: 700;
+      padding: 10px 14px;
+      font-size: .92rem;
+      font-weight: 900;
       cursor: pointer;
-      transition: transform .15s ease, box-shadow .15s ease, opacity .15s ease;
+      transition: transform .14s ease, opacity .14s ease, box-shadow .14s ease;
     }
-
     button:hover { transform: translateY(-1px); }
-    button:active { transform: translateY(0); opacity: .88; }
+    button:active { transform: translateY(0); opacity: .86; }
+    .primary { background: var(--sunflower); color: #3b2900; box-shadow: 0 8px 18px rgba(180,123,0,.18); }
+    .secondary { background: rgba(127,155,118,.18); color: var(--sage-dark); border: 1px solid var(--line); }
+    .danger { background: rgba(183,71,42,.16); color: var(--danger); border: 1px solid rgba(183,71,42,.18); }
+    .ghost { background: transparent; color: var(--muted); border: 1px solid var(--line); }
 
-    .primary {
-      background: var(--sunflower);
-      color: #3b2900;
-      box-shadow: 0 8px 18px rgba(194, 139, 0, 0.22);
-      flex: 1;
+    .section { padding-bottom: 16px; margin-bottom: 16px; border-bottom: 1px solid var(--line); }
+    .small-note { color: var(--muted); font-size: .8rem; margin-top: 6px; }
+
+    .nav-tabs, .tabs, .filters { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
+    .nav-btn, .tab, .filter-pill { background: rgba(243,235,213,.78); color: var(--muted); border: 1px solid var(--line); padding: 9px 12px; }
+    [data-theme="dark"] .nav-btn, [data-theme="dark"] .tab, [data-theme="dark"] .filter-pill { background: rgba(255,255,255,.06); }
+    .nav-btn.active, .tab.active, .filter-pill.active { background: var(--sage); color: white; }
+
+    .topbar { display: grid; grid-template-columns: 1.35fr .8fr .8fr .8fr; gap: 9px; margin-bottom: 14px; }
+
+    .book-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 14px; }
+    .book-card { background: var(--paper-solid); border: 1px solid var(--line); border-radius: 22px; padding: 14px; box-shadow: 0 10px 24px rgba(47,38,24,.08); position: relative; overflow: hidden; }
+    .book-card::after { content: ""; position: absolute; width: 95px; height: 95px; border-radius: 50%; background: rgba(246,201,69,.14); top: -42px; right: -38px; }
+    .cover-wrap { width: 100%; height: 230px; border-radius: 16px; background: linear-gradient(135deg, rgba(246,201,69,.22), rgba(127,155,118,.18)); display: flex; align-items: center; justify-content: center; overflow: hidden; color: var(--muted); font-weight: 900; margin-bottom: 11px; position: relative; z-index: 1; }
+    .cover-wrap img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .book-title { font-size: 1.18rem; font-weight: 900; color: var(--sage-dark); position: relative; z-index: 1; }
+    .book-author { margin: 3px 0 10px; color: var(--muted); font-style: italic; }
+    .meta { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0; }
+    .chip, .pill { background: rgba(243,235,213,.85); color: #67563f; border: 1px solid rgba(47,38,24,.08); border-radius: 999px; padding: 5px 8px; font-size: .76rem; font-weight: 800; }
+    [data-theme="dark"] .chip, [data-theme="dark"] .pill { color: var(--ink); background: rgba(255,255,255,.08); }
+    .chip.status { background: rgba(127,155,118,.22); color: var(--sage-dark); }
+    .chip.rating { background: rgba(246,201,69,.28); color: var(--gold); }
+    .read-history { margin-top: 9px; padding: 9px; background: rgba(246,201,69,.12); border: 1px solid rgba(180,123,0,.16); border-radius: 15px; font-size: .82rem; color: var(--gold); }
+    .read-history strong { display: block; color: var(--sage-dark); margin-bottom: 6px; }
+    .card-actions { display: flex; gap: 7px; flex-wrap: wrap; margin-top: 11px; }
+    .card-actions button { padding: 7px 9px; font-size: .78rem; }
+
+    .pill-list { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 8px; min-height: 12px; }
+    .pill { display: inline-flex; align-items: center; gap: 6px; }
+    .pill button { padding: 0 4px; background: transparent; color: var(--danger); box-shadow: none; }
+
+    .insight-grid, .achievement-grid, .shelf-grid, .timeline { display: grid; gap: 12px; }
+    .insight-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .achievement-grid { grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); }
+    .shelf-grid { grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); }
+    .mini-card { padding: 14px; border-radius: 18px; background: var(--paper-solid); border: 1px solid var(--line); }
+    .mini-title { color: var(--muted); font-size: .82rem; margin-bottom: 6px; }
+    .mini-value { color: var(--sage-dark); font-size: 1.4rem; font-weight: 900; }
+
+    .progress-shell { width: 100%; height: 12px; background: rgba(127,155,118,.18); border-radius: 99px; overflow: hidden; margin-top: 9px; }
+    .progress-bar { height: 100%; background: linear-gradient(90deg, var(--sunflower), var(--sage)); border-radius: 99px; }
+
+    .heatmap { display: grid; grid-template-columns: repeat(14, 1fr); gap: 5px; }
+    .heat-day { aspect-ratio: 1; border-radius: 6px; background: rgba(127,155,118,.14); border: 1px solid var(--line); position: relative; }
+    .heat-day.on { background: var(--sunflower); }
+    .heat-day.finish { box-shadow: inset 0 0 0 3px var(--sage); }
+    .heat-day:hover::after { content: attr(data-date); position: absolute; bottom: 120%; left: 50%; transform: translateX(-50%); background: var(--ink); color: var(--paper-solid); padding: 4px 7px; border-radius: 8px; font-size: .72rem; white-space: nowrap; z-index: 5; }
+
+    .timeline-item { padding: 12px 14px; background: var(--paper-solid); border: 1px solid var(--line); border-radius: 18px; }
+    .empty { padding: 36px 12px; text-align: center; border: 2px dashed var(--line); border-radius: 20px; color: var(--muted); }
+    .hidden { display: none !important; }
+    .site-footer { text-align: center; padding: 18px 10px 32px; color: var(--muted); opacity: .9; font-size: .92rem; }
+
+    @media (max-width: 1120px) {
+      .dashboard { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      .main-grid { grid-template-columns: 1fr; }
+      .panel { position: static; max-height: none; }
+      .insight-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     }
-
-    .secondary {
-      background: #e9f0e4;
-      color: var(--sage-dark);
-    }
-
-    .danger {
-      background: #f4d5c9;
-      color: var(--danger);
-    }
-
-    .tabs, .filters {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-      margin-bottom: 14px;
-    }
-
-    .tab, .filter-pill {
-      background: #f3ebd5;
-      color: var(--muted);
-      border: 1px solid rgba(65, 88, 58, 0.16);
-    }
-
-    .tab.active, .filter-pill.active {
-      background: var(--sage);
-      color: white;
-    }
-
-    .topbar {
-      display: grid;
-      grid-template-columns: 1.3fr .8fr .8fr .8fr;
-      gap: 10px;
-      margin-bottom: 14px;
-    }
-
-    .book-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(245px, 1fr));
-      gap: 14px;
-    }
-
-    .book-card {
-      background: var(--card);
-      border: 1px solid rgba(127, 155, 118, 0.24);
-      border-radius: 20px;
-      padding: 16px;
-      box-shadow: 0 10px 22px rgba(47, 38, 24, 0.08);
-      position: relative;
-      overflow: hidden;
-    }
-
-    .book-card::before {
-      content: '';
-      position: absolute;
-      width: 90px;
-      height: 90px;
-      border-radius: 50%;
-      background: rgba(246, 201, 69, 0.16);
-      right: -34px;
-      top: -36px;
-    }
-
-    .cover-wrap {
-      width: 100%;
-      height: 210px;
-      border-radius: 16px;
-      overflow: hidden;
-      background: linear-gradient(135deg, #f3ebd5, #e9f0e4);
-      margin-bottom: 12px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: var(--muted);
-      font-weight: 700;
-      position: relative;
-      z-index: 1;
-    }
-
-    .cover-wrap img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      display: block;
-    }
-
-    .book-title {
-      font-size: 1.18rem;
-      font-weight: 800;
-      color: var(--sage-dark);
-      padding-right: 25px;
-      position: relative;
-      z-index: 1;
-    }
-
-    .book-author {
-      color: var(--muted);
-      margin: 4px 0 10px;
-      font-style: italic;
-    }
-
-    .meta {
-      display: flex;
-      gap: 6px;
-      flex-wrap: wrap;
-      margin: 9px 0;
-    }
-
-    .chip {
-      background: #f3ebd5;
-      color: #67563f;
-      border-radius: 999px;
-      padding: 5px 8px;
-      font-size: 0.78rem;
-      border: 1px solid rgba(47, 38, 24, 0.08);
-    }
-
-    .chip.status { background: #e8f0e2; color: var(--sage-dark); }
-    .chip.rating { background: #fff0b7; color: #6e4c00; }
-
-    .read-history {
-      margin-top: 10px;
-      padding: 9px;
-      background: rgba(246, 201, 69, 0.12);
-      border: 1px solid rgba(194, 139, 0, 0.16);
-      border-radius: 14px;
-      font-size: 0.84rem;
-      color: #5f4200;
-    }
-
-    .read-history strong {
-      display: block;
-      margin-bottom: 6px;
-      color: var(--sage-dark);
-    }
-
-    .read-history span {
-      display: inline-block;
-      margin: 2px 5px 2px 0;
-      padding: 4px 7px;
-      background: #fff8e8;
-      border-radius: 999px;
-      border: 1px solid rgba(194, 139, 0, 0.16);
-    }
-
-    .card-actions {
-      display: flex;
-      gap: 7px;
-      flex-wrap: wrap;
-      margin-top: 12px;
-    }
-
-    .card-actions button {
-      padding: 8px 10px;
-      font-size: 0.8rem;
-    }
-
-    .empty {
-      text-align: center;
-      padding: 44px 14px;
-      color: var(--muted);
-      border: 2px dashed rgba(127, 155, 118, 0.28);
-      border-radius: 18px;
-      background: rgba(255,255,255,0.3);
-    }
-
-    .small-note {
-      font-size: 0.82rem;
-      color: var(--muted);
-      margin-top: 6px;
-    }
-
-    .reading-log-panel {
-      padding-bottom: 16px;
-      margin-bottom: 18px;
-      border-bottom: 1px solid rgba(127, 155, 118, 0.22);
-    }
-
-    .read-today-row {
-      display: grid;
-      grid-template-columns: 1fr auto;
-      gap: 8px;
-      align-items: center;
-    }
-
-    .reading-log-list {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 7px;
-      margin-top: 10px;
-    }
-
-    .reading-day-pill {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 6px 9px;
-      border-radius: 999px;
-      background: #e8f0e2;
-      color: var(--sage-dark);
-      border: 1px solid rgba(65, 88, 58, 0.18);
-      font-size: 0.82rem;
-      font-weight: 700;
-    }
-
-    .reading-day-pill button {
-      padding: 0 4px;
-      background: transparent;
-      color: var(--danger);
-      box-shadow: none;
-      border-radius: 50%;
-      font-size: 0.9rem;
-    }
-
-    .footer-tools {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-      margin-top: 16px;
-      padding-top: 14px;
-      border-top: 1px solid rgba(127, 155, 118, 0.22);
-    }
-
-    .sunflower-options {
-      display: grid;
-      grid-template-columns: repeat(6, 1fr);
-      gap: 6px;
-      align-items: stretch;
-    }
-
-    .sunflower-btn {
-      background: #f3ebd5;
-      color: #3b2900;
-      padding: 10px 7px;
-      border-radius: 12px;
-      font-size: 1rem;
-      line-height: 1.1;
-      min-height: 44px;
-      border: 1px solid rgba(194, 139, 0, 0.18);
-      box-shadow: none;
-    }
-
-    .sunflower-btn.active {
-      background: var(--sunflower);
-      color: #2f2100;
-      box-shadow: 0 0 0 3px rgba(246, 201, 69, 0.28);
-    }
-
-    .sunflower-small {
-      display: block;
-      font-size: 0.68rem;
-      margin-top: 3px;
-      color: rgba(47, 38, 24, 0.72);
-    }
-
-    @media (max-width: 980px) {
-      .dashboard { grid-template-columns: repeat(3, 1fr); }
-      .layout { grid-template-columns: 1fr; }
-      .panel { position: static; }
-    }
-
-    .site-footer {
-      text-align: center;
-      padding: 18px 10px 28px;
-      font-size: 0.9rem;
-      color: var(--muted);
-      opacity: 0.85;
-    }
-
-    @media (max-width: 620px) {
-      .dashboard { grid-template-columns: repeat(2, 1fr); }
-      .topbar, .row { grid-template-columns: 1fr; }
-      header { padding-top: 24px; }
+    @media (max-width: 680px) {
+      .dashboard { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .topbar, .row, .action-row { grid-template-columns: 1fr; }
+      .insight-grid { grid-template-columns: 1fr; }
+      .site-title { letter-spacing: -1px; }
     }
   </style>
 </head>
-<body>
+<body data-theme="sunflower">
   <header>
-    <h1 class="site-title"><span class="title-flower">🌻</span><span>Laura's Library</span><span class="title-flower">🌻</span></h1>
-    <div class="subtitle">A cosy home for every physical book, ebook, audiobook, reread, wishlist pick, and comfort favourite.</div>
+    <div class="hero">
+      <h1 class="site-title"><span class="title-flower">🌻</span><span>Laura's Library</span><span class="title-flower">🌻</span></h1>
+      <div class="subtitle">A personal reading hub for every book, reread, mood, shelf, goal, streak, quote, and bookish achievement.</div>
+    </div>
   </header>
 
   <main class="app">
+    <div class="top-actions">
+      <button class="nav-btn active" data-view="library">Library</button>
+      <button class="nav-btn" data-view="insights">Insights</button>
+      <button class="nav-btn" data-view="calendar">Calendar</button>
+      <button class="nav-btn" data-view="shelves">Shelves</button>
+      <button class="nav-btn" data-view="achievements">Achievements</button>
+      <button class="nav-btn" data-view="yearReview">Year Review</button>
+      <button class="secondary" id="themeBtn" type="button">Toggle Dark Mode</button>
+    </div>
+
     <section class="dashboard" id="dashboard"></section>
 
-    <section class="layout">
+    <section class="main-grid">
       <aside class="panel">
-        <section class="reading-log-panel">
+        <section class="section">
           <h2>Daily Reading Log</h2>
-          <div class="read-today-row">
-            <input id="readingLogDate" type="date" />
-            <button class="primary" type="button" id="markReadToday" onclick="markReadingDay()">I Read Today</button>
+          <div class="action-row">
+            <input id="dailyDate" type="date" />
+            <button class="primary" type="button" id="readTodayBtn">I Read Today</button>
           </div>
-          <div class="small-note" id="readingLogStatus">Track days Laura reads, even if she does not finish a book.</div>
-          <div class="reading-log-list" id="readingLogList"></div>
+          <label for="dailyBook">Optional Book</label>
+          <select id="dailyBook"></select>
+          <div class="row">
+            <div>
+              <label for="dailyPages">Pages</label>
+              <input id="dailyPages" type="number" min="0" placeholder="Optional" />
+            </div>
+            <div>
+              <label for="dailyMinutes">Minutes</label>
+              <input id="dailyMinutes" type="number" min="0" placeholder="Optional" />
+            </div>
+          </div>
+          <label for="dailyMood">Mood</label>
+          <input id="dailyMood" placeholder="cosy, tired, obsessed..." />
+          <div class="small-note" id="dailyStatus">Track reading days even when Laura does not finish a book.</div>
+          <div class="pill-list" id="dailyLogList"></div>
         </section>
 
-        <h2 id="formTitle">Add a Book</h2>
-        <form id="bookForm" onsubmit="saveBook(event); return false;">
-          <input type="hidden" id="bookId" />
-
-          <label for="isbn">Quick Add by ISBN</label>
-          <div class="isbn-row">
-            <input id="isbn" placeholder="Paste ISBN, e.g. 9780141439518" />
-            <button class="secondary" type="button" id="fetchIsbn">Fetch</button>
-          </div>
-          <div class="small-note" id="isbnStatus">Optional. Works best for physical books.</div>
-
-          <label for="coverUrl">Cover Image URL</label>
-          <input id="coverUrl" placeholder="Auto-filled from ISBN when available" />
-
-          <label for="title">Title *</label>
-          <input id="title" required placeholder="e.g. Harry Potter" />
-
-          <label for="author">Author *</label>
-          <input id="author" required placeholder="e.g. JRR Tolkien" />
-
+        <section class="section">
+          <h2>Goals</h2>
           <div class="row">
             <div>
-              <label for="series">Series</label>
-              <input id="series" placeholder="Optional" />
+              <label for="goalBooks">Books / year</label>
+              <input id="goalBooks" type="number" min="1" value="50" />
             </div>
             <div>
-              <label for="seriesNumber">Book #</label>
-              <input id="seriesNumber" type="number" min="0" step="0.5" placeholder="Optional" />
+              <label for="goalPages">Pages / year</label>
+              <input id="goalPages" type="number" min="0" value="0" />
             </div>
           </div>
-
           <div class="row">
             <div>
-              <label for="format">Source / Format</label>
-              <select id="format">
-                <option>Hardback</option>
-                <option>Paperback</option>
-                <option>Special Edition</option>
-                <option>Ebook</option>
-                <option>Audiobook</option>
-                <option>Combination</option>
-              </select>
+              <label for="goalStreak">Streak goal</label>
+              <input id="goalStreak" type="number" min="1" value="30" />
             </div>
             <div>
-              <label for="status">Status</label>
-              <select id="status">
-                <option>Wishlist</option>
-                <option>TBR</option>
-                <option>Owned</option>
-                <option>Reading</option>
-                <option>Finished</option>
-                <option>DNF</option>
-              </select>
+              <label for="goalFiveStars">5🌻 goal</label>
+              <input id="goalFiveStars" type="number" min="0" value="10" />
             </div>
           </div>
+          <button class="secondary" type="button" id="saveGoalsBtn">Save Goals</button>
+        </section>
 
-          <label for="rating">Sunflower Rating</label>
-          <select id="rating">
-            <option value="0">No rating yet</option>
-            <option value="1">1 🌻</option>
-            <option value="2">2 🌻🌻</option>
-            <option value="3">3 🌻🌻🌻</option>
-            <option value="4">4 🌻🌻🌻🌻</option>
-            <option value="5">5 🌻🌻🌻🌻🌻</option>
-          </select>
+        <section>
+          <h2 id="formTitle">Add a Book</h2>
+          <form id="bookForm" novalidate>
+            <input type="hidden" id="bookId" />
 
-          <label for="genre">Genre</label>
-          <select id="genre">
-            <option value="">No genre selected</option>
-            <option>Fantasy</option>
-            <option>Romantasy</option>
-            <option>Romance</option>
-            <option>Epic Fantasy</option>
-            <option>YA</option>
-          </select>
-
-          <label for="readReason">Read Type</label>
-          <select id="readReason">
-            <option value="">Not set</option>
-            <option>Recommended Book</option>
-            <option>Mood Read</option>
-            <option>Book Club</option>
-            <option>Buddy Read</option>
-          </select>
-
-          <label for="moodTags">Mood Tags</label>
-          <input id="moodTags" placeholder="cosy, dark, comfort read, emotional" />
-          <div class="small-note">Separate tags with commas.</div>
-
-          <label for="feelTags">Feels / Tropes Tags</label>
-          <input id="feelTags" placeholder="slow burn, found family, heartbreak" />
-
-          <div class="row">
-            <div>
-              <label for="timesRead">Times Read</label>
-              <input id="timesRead" type="number" min="0" value="0" />
+            <label for="isbn">Quick Add by ISBN</label>
+            <div class="action-row">
+              <input id="isbn" placeholder="Paste ISBN, e.g. 9780141439518" />
+              <button class="secondary" type="button" id="fetchIsbnBtn">Fetch</button>
             </div>
-            <div>
-              <label for="pageCount">Page Count</label>
-              <input id="pageCount" type="number" min="0" value="0" />
+            <div class="small-note" id="isbnStatus">Optional. Works best for physical books.</div>
+
+            <label for="coverUrl">Cover Image</label>
+            <input id="coverUrl" placeholder="Auto-filled, pasted URL, or uploaded image" />
+            <div class="action-row" style="margin-top:8px;">
+              <input id="coverUpload" type="file" accept="image/*" />
+              <button class="secondary" type="button" id="clearCoverBtn">Clear</button>
             </div>
+
+            <label for="title">Title *</label>
+            <input id="title" placeholder="e.g. Fourth Wing" />
+            <label for="author">Author *</label>
+            <input id="author" placeholder="e.g. Rebecca Yarros" />
+
+            <div class="row">
+              <div><label for="series">Series</label><input id="series" placeholder="Optional" /></div>
+              <div><label for="seriesNumber">Book #</label><input id="seriesNumber" type="number" min="0" step="0.5" placeholder="Optional" /></div>
+            </div>
+
+            <div class="row">
+              <div>
+                <label for="format">Format</label>
+                <select id="format"><option>Hardback</option><option>Paperback</option><option>Special Edition</option><option>Ebook</option><option>Audiobook</option><option>Combination</option></select>
+              </div>
+              <div>
+                <label for="status">Status</label>
+                <select id="status"><option>Wishlist</option><option>TBR</option><option>Owned</option><option>Reading</option><option>Finished</option><option>DNF</option></select>
+              </div>
+            </div>
+
+            <div class="row">
+              <div>
+                <label for="rating">Sunflower Rating</label>
+                <select id="rating"><option value="0">No rating yet</option><option value="1">1 🌻</option><option value="2">2 🌻🌻</option><option value="3">3 🌻🌻🌻</option><option value="4">4 🌻🌻🌻🌻</option><option value="5">5 🌻🌻🌻🌻🌻</option></select>
+              </div>
+              <div>
+                <label for="genre">Genre</label>
+                <select id="genre"><option value="">No genre selected</option><option>Fantasy</option><option>Romantasy</option><option>Romance</option><option>Epic Fantasy</option><option>YA</option><option>Thriller</option><option>Mystery</option><option>Contemporary</option><option>Non-fiction</option></select>
+              </div>
+            </div>
+
+            <label for="readType">Read Type</label>
+            <select id="readType"><option value="">Not set</option><option>Recommended Book</option><option>Mood Read</option><option>Book Club</option><option>Buddy Read</option><option>Comfort Reread</option></select>
+
+            <label for="shelvesInput">Shelves / Collections</label>
+            <input id="shelvesInput" placeholder="Comfort Reads, Autumn Vibes, Dragon Obsession" />
+            <div class="small-note">Separate shelves with commas.</div>
+
+            <label for="moodTags">Mood Tags</label>
+            <input id="moodTags" placeholder="cosy, dark, emotional, spicy" />
+            <label for="feelTags">Feels / Tropes Tags</label>
+            <input id="feelTags" placeholder="slow burn, found family, heartbreak" />
+
+            <div class="row">
+              <div><label for="progressPercent">Progress %</label><input id="progressPercent" type="number" min="0" max="100" value="0" /></div>
+              <div><label for="pageCount">Page Count</label><input id="pageCount" type="number" min="0" value="0" /></div>
+            </div>
+
+            <label for="bookReadDate">Finished / Reread Dates</label>
+            <div class="action-row">
+              <input id="bookReadDate" type="date" />
+              <button class="secondary" type="button" id="addBookReadDateBtn">Add Date</button>
+            </div>
+            <div class="pill-list" id="bookReadDateList"></div>
+
+            <label for="notes">Reading Journal</label>
+            <textarea id="notes" placeholder="How did this book make Laura feel?"></textarea>
+            <label for="quote">Favourite Quote</label>
+            <textarea id="quote" placeholder="A quote worth keeping..."></textarea>
+            <label for="bookHangover">Book Hangover Level</label>
+            <select id="bookHangover"><option value="0">None</option><option value="1">Tiny wobble</option><option value="2">Mild suffering</option><option value="3">Ruined for days</option><option value="4">Emotionally destroyed</option></select>
+
+            <div class="button-row">
+              <button class="primary" type="submit">Save Book</button>
+              <button class="secondary" type="button" id="clearFormBtn">Clear</button>
+            </div>
+          </form>
+
+          <div class="footer-tools">
+            <button class="secondary" id="exportBtn" type="button">Export Backup</button>
+            <button class="secondary" id="importBtn" type="button">Import Backup</button>
+            <button class="danger" id="clearAllBtn" type="button">Clear All</button>
+            <input id="importFile" type="file" accept="application/json" style="display:none" />
           </div>
-
-          <label for="readDateInput">Read / Reread Dates</label>
-          <div class="read-date-row">
-            <input id="readDateInput" type="date" />
-            <button class="secondary" type="button" id="addReadDate" onclick="addFormReadDate()">Add Date</button>
-          </div>
-          <div class="read-date-list" id="readDateList"></div>
-          <input type="hidden" id="rereadDates" />
-          <div class="small-note">Add one date each time Laura finishes or rereads this book.</div>
-
-          
-
-          <label for="notes">Notes</label>
-          <textarea id="notes" placeholder="Thoughts, quotes, reread notes, why Laura loves it..."></textarea>
-
-          <div class="buttons">
-            <button class="primary" type="button" id="saveBookButton">Save Book</button>
-            <button class="secondary" type="button" id="resetForm">Clear</button>
-          </div>
-        </form>
-
-        <div class="footer-tools">
-          <button class="secondary" id="exportData">Export Backup</button>
-          <button class="secondary" id="importData">Import Backup</button>
-          <button class="danger" id="clearAll">Clear All</button>
-          <input id="importFile" type="file" accept="application/json" style="display:none" />
-        </div>
+        </section>
       </aside>
 
       <section class="library-panel">
-        <div class="tabs" id="tabs"></div>
+        <section id="view-library" class="app-view">
+          <div class="tabs" id="tabs"></div>
+          <div class="topbar">
+            <input id="search" placeholder="Search book, author, genre, unread, shelf, mood, tags or notes..." />
+            <select id="formatFilter"><option value="All">All Formats</option><option>Hardback</option><option>Paperback</option><option>Special Edition</option><option>Ebook</option><option>Audiobook</option><option>Combination</option></select>
+            <select id="genreFilter"><option value="All">All Genres</option><option>Fantasy</option><option>Romantasy</option><option>Romance</option><option>Epic Fantasy</option><option>YA</option><option>Thriller</option><option>Mystery</option><option>Contemporary</option><option>Non-fiction</option></select>
+            <select id="sortBy"><option value="newest">Newest Added</option><option value="title">Title A-Z</option><option value="author">Author A-Z</option><option value="rating">Highest Rated</option><option value="lastRead">Last Read</option><option value="timesRead">Most Reread</option><option value="progress">Progress</option></select>
+          </div>
+          <div class="filters" id="tagFilters"></div>
+          <div id="bookGrid" class="book-grid"></div>
+        </section>
 
-        <div class="topbar">
-          <input id="search" placeholder="Search title, author, series, notes or tags..." />
-          <select id="formatFilter">
-            <option value="All">All Formats</option>
-            <option>Hardback</option>
-            <option>Paperback</option>
-            <option>Special Edition</option>
-            <option>Ebook</option>
-            <option>Audiobook</option>
-            <option>Combination</option>
-          </select>
-          <select id="genreFilter">
-            <option value="All">All Genres</option>
-            <option>Fantasy</option>
-            <option>Romantasy</option>
-            <option>Romance</option>
-            <option>Epic Fantasy</option>
-            <option>YA</option>
-          </select>
-          <select id="sortBy">
-            <option value="newest">Newest Added</option>
-            <option value="title">Title A-Z</option>
-            <option value="author">Author A-Z</option>
-            <option value="rating">Highest Rated</option>
-            <option value="lastRead">Last Read</option>
-            <option value="timesRead">Most Reread</option>
-          </select>
-        </div>
-
-        <div class="filters" id="tagFilters"></div>
-        <div id="bookGrid" class="book-grid"></div>
+        <section id="view-insights" class="app-view hidden"><h2>Reading Insights</h2><div id="insightsGrid" class="insight-grid"></div></section>
+        <section id="view-calendar" class="app-view hidden"><h2>Reading Calendar</h2><div class="small-note">Gold = reading day. Green outline = book finished/reread.</div><div id="heatmap" class="heatmap" style="margin-top:14px;"></div></section>
+        <section id="view-shelves" class="app-view hidden"><h2>Laura's Shelves</h2><div id="shelvesGrid" class="shelf-grid"></div></section>
+        <section id="view-achievements" class="app-view hidden"><h2>Achievements</h2><div id="achievementsGrid" class="achievement-grid"></div></section>
+        <section id="view-yearReview" class="app-view hidden"><h2>Year in Review</h2><div id="yearReviewContent" class="insight-grid"></div><h3 style="margin-top:16px;">Reading Timeline</h3><div id="timeline" class="timeline"></div></section>
       </section>
     </section>
   </main>
 
-  <footer class="site-footer">
-    Created by Jason for his beautiful baby boss princess 💛
-  </footer>
+  <footer class="site-footer">Created by Jason for his beautiful baby boss princess 💛</footer>
 
   <script>
-    const STORAGE_KEY = 'laurasLibraryBooksV1';
-    const READING_LOG_KEY = 'laurasLibraryReadingLogV1';
+    const VERSION = 3;
+    const BOOKS_KEY = 'laurasLibraryBooksV3';
+    const DAILY_KEY = 'laurasLibraryDailyLogV3';
+    const GOALS_KEY = 'laurasLibraryGoalsV3';
+    const THEME_KEY = 'laurasLibraryThemeV3';
     const OPEN_LIBRARY_BASE = 'https://openlibrary.org';
-
+    const tabs = ['All', 'Wishlist', 'TBR', 'Owned', 'Reading', 'Finished', 'Unread', 'DNF', 'Rereads', 'Favourites'];
+    const $ = (id) => document.getElementById(id);
     let books = [];
-    let readingLog = [];
-
-    function loadBooks() {
-      try {
-        const saved = localStorage.getItem(STORAGE_KEY);
-        books = saved ? JSON.parse(saved) : [];
-        if (!Array.isArray(books)) books = [];
-      } catch (error) {
-        books = [];
-        console.error('Could not load Laura\'s Library data:', error);
-      }
-
-      try {
-        const savedLog = localStorage.getItem(READING_LOG_KEY);
-        readingLog = savedLog ? JSON.parse(savedLog) : [];
-        if (!Array.isArray(readingLog)) readingLog = [];
-      } catch (error) {
-        readingLog = [];
-        console.error('Could not load Laura\'s reading log:', error);
-      }
-    }
+    let dailyLog = [];
+    let goals = { books: 50, pages: 0, streak: 30, fiveStars: 10 };
     let activeTab = 'All';
     let activeTag = 'All';
-    let currentFormReadDates = [];
+    let currentView = 'library';
+    let formReadDates = [];
 
-    const tabs = ['All', 'Wishlist', 'TBR', 'Owned', 'Reading', 'Finished', 'Unread', 'DNF', 'Rereads'];
+    const uid = () => (crypto && crypto.randomUUID ? crypto.randomUUID() : String(Date.now() + Math.random()));
+    const today = () => new Date().toISOString().slice(0, 10);
+    const normalize = (v) => String(v || '').toLowerCase().trim();
+    const escapeHtml = (v) => String(v || '').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&#039;');
+    const splitList = (v) => String(v || '').split(',').map(x => x.trim()).filter(Boolean);
+    const cleanIsbn = (v) => String(v || '').replace(/[^0-9Xx]/g, '').toUpperCase();
+    const uniqueDates = (dates, order = 'desc') => [...new Set((dates || []).filter(Boolean))].sort((a,b) => order === 'desc' ? b.localeCompare(a) : a.localeCompare(b));
+    const daysBetween = (a,b) => Math.round((new Date(b+'T00:00:00') - new Date(a+'T00:00:00')) / 86400000);
+    const sameYear = (d,y) => d && new Date(d+'T00:00:00').getFullYear() === y;
+    const sameMonth = (d,y,m) => { if(!d) return false; const x = new Date(d+'T00:00:00'); return x.getFullYear() === y && x.getMonth() === m; };
+    const ratingText = (r) => Number(r || 0) ? '🌻'.repeat(Number(r)) + '☆'.repeat(5 - Number(r)) : 'Not rated';
+    const getLastRead = (book) => uniqueDates(book.readDates || [], 'desc')[0] || '';
+    const bookReadCount = (book) => uniqueDates(book.readDates || [], 'desc').length || Number(book.timesRead || 0);
+    const allBookFinishDates = () => books.flatMap(b => (b.readDates || []).map(date => ({ date, book: b })));
 
-    const $ = (id) => document.getElementById(id);
-
-    function save() {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(books));
+    function load() {
+      try { books = JSON.parse(localStorage.getItem(BOOKS_KEY) || '[]'); } catch { books = []; }
+      try { dailyLog = JSON.parse(localStorage.getItem(DAILY_KEY) || '[]'); } catch { dailyLog = []; }
+      try { goals = { ...goals, ...(JSON.parse(localStorage.getItem(GOALS_KEY) || '{}')) }; } catch {}
+      if (!Array.isArray(books)) books = [];
+      if (!Array.isArray(dailyLog)) dailyLog = [];
+      document.body.dataset.theme = localStorage.getItem(THEME_KEY) || 'sunflower';
     }
+    const saveBooks = () => localStorage.setItem(BOOKS_KEY, JSON.stringify(books));
+    const saveDaily = () => localStorage.setItem(DAILY_KEY, JSON.stringify(uniqueDates(dailyLog, 'desc')));
+    const saveGoals = () => localStorage.setItem(GOALS_KEY, JSON.stringify(goals));
 
-    function saveReadingLog() {
-      localStorage.setItem(READING_LOG_KEY, JSON.stringify(readingLog));
-    }
-
-    function splitTags(value) {
-      return value
-        .split(',')
-        .map(tag => tag.trim())
-        .filter(Boolean);
-    }
-
-    function sunflowerRating(rating) {
-      const value = Number(rating || 0);
-      return value ? '🌻'.repeat(value) + '☆'.repeat(5 - value) : 'Not rated';
-    }
-
-    function cleanIsbn(value) {
-      return String(value || '').replace(/[^0-9Xx]/g, '').toUpperCase();
-    }
-
-    function setIsbnStatus(message) {
-      $('isbnStatus').textContent = message;
-    }
-
-    async function fetchBookByIsbn() {
-      const isbn = cleanIsbn($('isbn').value);
-      if (!isbn) {
-        setIsbnStatus('Add an ISBN first. No ISBN, no magic.');
-        return;
-      }
-
-      setIsbnStatus('Looking up book details...');
-      $('fetchIsbn').disabled = true;
-      $('fetchIsbn').textContent = 'Fetching...';
-
-      try {
-        const response = await fetch(`${OPEN_LIBRARY_BASE}/isbn/${isbn}.json`);
-        if (!response.ok) throw new Error('Book not found');
-        const data = await response.json();
-
-        $('isbn').value = isbn;
-        $('title').value = data.title || $('title').value;
-        $('coverUrl').value = `https://covers.openlibrary.org/b/isbn/${isbn}-L.jpg`;
-
-        if (Array.isArray(data.authors) && data.authors.length) {
-          const authorNames = await Promise.all(data.authors.slice(0, 3).map(async (author) => {
-            try {
-              const authorResponse = await fetch(`${OPEN_LIBRARY_BASE}${author.key}.json`);
-              if (!authorResponse.ok) return '';
-              const authorData = await authorResponse.json();
-              return authorData.name || '';
-            } catch {
-              return '';
-            }
-          }));
-          const cleanAuthors = authorNames.filter(Boolean).join(', ');
-          if (cleanAuthors) $('author').value = cleanAuthors;
-        }
-
-        setIsbnStatus('Found it. Check the details before saving.');
-      } catch (error) {
-        setIsbnStatus('Could not find that ISBN. Add it manually and move on.');
-      } finally {
-        $('fetchIsbn').disabled = false;
-        $('fetchIsbn').textContent = 'Fetch';
-      }
-    }
-
-    function today() {
-      return new Date().toISOString().slice(0, 10);
-    }
-
-    function daysBetween(dateA, dateB) {
-      const a = new Date(dateA + 'T00:00:00');
-      const b = new Date(dateB + 'T00:00:00');
-      return Math.round((b - a) / 86400000);
-    }
-
-    function uniqueSortedReadingDays() {
-      return [...new Set(readingLog)].sort((a, b) => b.localeCompare(a));
-    }
-
-    function currentReadingStreak() {
-      const days = uniqueSortedReadingDays();
+    function currentStreak() {
+      const days = uniqueDates(dailyLog, 'desc');
       if (!days.length) return 0;
-
       let anchor = today();
       if (days[0] !== anchor && daysBetween(days[0], anchor) > 1) return 0;
       if (days[0] !== anchor) anchor = days[0];
-
       let streak = 0;
-      for (let i = 0; i < days.length; i++) {
-        const expected = new Date(anchor + 'T00:00:00');
-        expected.setDate(expected.getDate() - i);
-        const expectedStr = expected.toISOString().slice(0, 10);
-        if (days[i] === expectedStr) streak++;
-        else break;
+      for (let i=0; i<days.length; i++) {
+        const expected = new Date(anchor+'T00:00:00'); expected.setDate(expected.getDate()-i);
+        if (days[i] === expected.toISOString().slice(0,10)) streak++; else break;
       }
       return streak;
     }
-
-    function longestReadingStreak() {
-      const days = uniqueSortedReadingDays().sort((a, b) => a.localeCompare(b));
+    function longestStreak() {
+      const days = uniqueDates(dailyLog, 'asc');
       if (!days.length) return 0;
-      let longest = 1;
-      let current = 1;
-      for (let i = 1; i < days.length; i++) {
-        if (daysBetween(days[i - 1], days[i]) === 1) current++;
-        else current = 1;
-        longest = Math.max(longest, current);
-      }
-      return longest;
+      let best = 1, current = 1;
+      for (let i=1; i<days.length; i++) { if (daysBetween(days[i-1], days[i]) === 1) current++; else current = 1; best = Math.max(best, current); }
+      return best;
     }
-
-    function sameYear(dateStr, year) {
-      return dateStr && new Date(dateStr).getFullYear() === year;
-    }
-
-    function sameMonth(dateStr, year, month) {
-      if (!dateStr) return false;
-      const d = new Date(dateStr);
-      return d.getFullYear() === year && d.getMonth() === month;
-    }
-
-    function renderRatingButtons(selected = 0) {
-      const wrap = $('ratingButtons');
-      if (!wrap) return;
-    }
-
-    function renderFormReadDates() {
-      const list = $('readDateList');
-      if (!list) return;
-
-      $('rereadDates').value = JSON.stringify(currentFormReadDates);
-
-      if (!currentFormReadDates.length) {
-        list.innerHTML = '<span class="small-note">No read dates added yet.</span>';
-        $('timesRead').value = 0;
-        return;
-      }
-
-      currentFormReadDates.sort((a, b) => b.localeCompare(a));
-      $('timesRead').value = currentFormReadDates.length;
-      list.innerHTML = currentFormReadDates.map((date, index) => `
-        <span class="read-date-pill">
-          ${escapeHtml(date)}
-          <button type="button" onclick="removeFormReadDate(${index})" aria-label="Remove read date">×</button>
-        </span>
-      `).join('');
-    }
-
-    window.removeFormReadDate = function(index) {
-      currentFormReadDates.splice(index, 1);
-      renderFormReadDates();
-    }
-
-    window.addFormReadDate = function addFormReadDate() {
-      const date = $('readDateInput').value;
-      if (!date) {
-        alert('Pick a read date first.');
-        return;
-      }
-      currentFormReadDates.push(date);
-      $('readDateInput').value = '';
-      renderFormReadDates();
+    function countBy(items) {
+      const map = new Map();
+      items.filter(Boolean).forEach(x => map.set(x, (map.get(x) || 0) + 1));
+      return [...map.entries()].sort((a,b) => b[1]-a[1]);
     }
 
     function renderDashboard() {
-      const now = new Date();
-      const year = now.getFullYear();
-      const month = now.getMonth();
-      const finished = books.filter(b => b.status === 'Finished');
-      const allReadDates = books.flatMap(b => b.rereadDates || []).filter(Boolean);
-      const readThisYear = allReadDates.filter(d => sameYear(d, year)).length || finished.filter(b => sameYear(b.dateFinished || b.lastRead, year)).length;
-      const readThisMonth = allReadDates.filter(d => sameMonth(d, year, month)).length || finished.filter(b => sameMonth(b.dateFinished || b.lastRead, year, month)).length;
-      const totalPagesRead = books.reduce((sum, b) => sum + (Number(b.pageCount || 0) * Number(b.timesRead || 0)), 0);
-      const yearlyTarget = Number(localStorage.getItem('laurasLibraryYearlyTarget') || 50);
-      const remainingTarget = Math.max(0, yearlyTarget - readThisYear);
+      const now = new Date(), year = now.getFullYear(), month = now.getMonth();
+      const finishedThisYear = allBookFinishDates().filter(x => sameYear(x.date, year)).length;
+      const pages = books.reduce((s,b) => s + (Number(b.pageCount || 0) * bookReadCount(b)), 0);
       const rated = books.filter(b => Number(b.rating) > 0);
-      const avgRating = rated.length ? (rated.reduce((sum, b) => sum + Number(b.rating), 0) / rated.length).toFixed(1) : '0.0';
-      const readingDaysThisMonth = readingLog.filter(d => sameMonth(d, year, month)).length;
-      const streakNow = currentReadingStreak();
-      const streakBest = longestReadingStreak();
-
+      const avg = rated.length ? (rated.reduce((s,b) => s + Number(b.rating), 0) / rated.length).toFixed(1) : '0.0';
+      const progress = goals.books ? Math.min(100, Math.round((finishedThisYear / goals.books) * 100)) : 0;
       const stats = [
-        [books.length, 'Total Books'],
-        [readThisYear, 'Read This Year'],
-        [readThisMonth, 'Books Read This Month'],
-        [streakNow + ' 🔥', 'Current Reading Streak'],
-        [streakBest + ' 🏆', 'Best Reading Streak'],
-        [readingDaysThisMonth, 'Reading Days This Month'],
-        [totalPagesRead.toLocaleString(), 'Total Pages Read'],
-        [avgRating + ' 🌻', 'Average Rating']
+        [books.length, 'Total Books'], [finishedThisYear, `Books Read in ${year}`], [progress + '%', `Goal (${finishedThisYear}/${goals.books})`],
+        [currentStreak() + ' 🔥', 'Current Streak'], [longestStreak() + ' 🏆', 'Best Streak'], [dailyLog.filter(d => sameMonth(d, year, month)).length, 'Reading Days This Month'],
+        [pages.toLocaleString(), 'Total Pages'], [avg + ' 🌻', 'Average Rating'], [books.filter(b => Number(b.rating) === 5).length, '5 Sunflower Reads']
       ];
+      $('dashboard').innerHTML = stats.map(([v,l]) => `<div class="stat-card"><div class="stat-value">${v}</div><div class="stat-label">${l}</div></div>`).join('');
+    }
 
-      $('dashboard').innerHTML = stats.map(([value, label]) => `
-        <div class="stat-card">
-          <div class="stat-value">${value}</div>
-          <div class="stat-label">${label}</div>
-        </div>
-      `).join('');
+    function renderGoalsForm() { $('goalBooks').value = goals.books; $('goalPages').value = goals.pages; $('goalStreak').value = goals.streak; $('goalFiveStars').value = goals.fiveStars; }
+    function renderDailyBookOptions() { $('dailyBook').innerHTML = '<option value="">No specific book</option>' + books.map(b => `<option value="${b.id}">${escapeHtml(b.title)}</option>`).join(''); }
+    function renderDailyLog() {
+      if (!$('dailyDate').value) $('dailyDate').value = today();
+      const days = uniqueDates(dailyLog.map(x => typeof x === 'string' ? x : x.date), 'desc');
+      $('dailyLogList').innerHTML = days.length ? days.slice(0,12).map(d => `<span class="pill">${escapeHtml(d)} <button type="button" onclick="removeDaily('${d}')">×</button></span>`).join('') : '<span class="small-note">No reading days logged yet.</span>';
+    }
+    function renderFormReadDates() {
+      formReadDates = uniqueDates(formReadDates, 'desc');
+      $('bookReadDateList').innerHTML = formReadDates.length ? formReadDates.map(d => `<span class="pill">${escapeHtml(d)} <button type="button" onclick="removeBookDate('${d}')">×</button></span>`).join('') : '<span class="small-note">No finished/reread dates yet.</span>';
     }
 
     function renderTabs() {
-      $('tabs').innerHTML = tabs.map(tab => `
-        <button class="tab ${activeTab === tab ? 'active' : ''}" data-tab="${tab}">${tab}</button>
-      `).join('');
-
-      document.querySelectorAll('.tab').forEach(btn => {
-        btn.onclick = () => {
-          activeTab = btn.dataset.tab;
-          render();
-        };
-      });
+      $('tabs').innerHTML = tabs.map(t => `<button class="tab ${activeTab === t ? 'active' : ''}" data-tab="${t}">${t}</button>`).join('');
+      document.querySelectorAll('.tab').forEach(btn => btn.onclick = () => { activeTab = btn.dataset.tab; render(); });
     }
-
     function allTags() {
-      const tagSet = new Set();
-      books.forEach(book => [...(book.moodTags || []), ...(book.feelTags || [])].forEach(t => tagSet.add(t)));
-      return ['All', ...Array.from(tagSet).sort((a,b) => a.localeCompare(b))];
+      const set = new Set();
+      books.forEach(b => [...(b.moodTags||[]), ...(b.feelTags||[]), ...(b.shelves||[])].forEach(t => set.add(t)));
+      return ['All', ...[...set].sort((a,b) => a.localeCompare(b))];
     }
-
     function renderTagFilters() {
-      const tags = allTags();
-      $('tagFilters').innerHTML = tags.slice(0, 18).map(tag => `
-        <button class="filter-pill ${activeTag === tag ? 'active' : ''}" data-tag="${tag}">${tag}</button>
-      `).join('');
-
-      document.querySelectorAll('.filter-pill').forEach(btn => {
-        btn.onclick = () => {
-          activeTag = btn.dataset.tag;
-          render();
-        };
-      });
+      $('tagFilters').innerHTML = allTags().slice(0,24).map(t => `<button class="filter-pill ${activeTag === t ? 'active' : ''}" data-tag="${escapeHtml(t)}">${escapeHtml(t)}</button>`).join('');
+      document.querySelectorAll('.filter-pill').forEach(btn => btn.onclick = () => { activeTag = btn.dataset.tag; render(); });
     }
-
     function filteredBooks() {
-      const query = $('search').value.trim().toLowerCase();
-      const format = $('formatFilter').value;
-      const genre = $('genreFilter').value;
-      const sortBy = $('sortBy').value;
-
-      let result = books.filter(book => {
-        const combined = [
-          book.title, book.author, book.series, book.genre, book.readReason, book.status, book.notes,
-          ...(book.moodTags || []), ...(book.feelTags || [])
-        ].join(' ').toLowerCase();
-
-        const matchesQuery = !query || combined.includes(query);
-        const matchesFormat = format === 'All' || book.format === format;
-        const matchesGenre = genre === 'All' || book.genre === genre;
-        const matchesTab = activeTab === 'All'
-          || (activeTab === 'Rereads' ? Number(book.timesRead || 0) > 1 : activeTab === 'Unread' ? !['Reading', 'Finished', 'DNF'].includes(book.status) : book.status === activeTab);
-        const tags = [...(book.moodTags || []), ...(book.feelTags || [])];
-        const matchesTag = activeTag === 'All' || tags.includes(activeTag);
-
-        return matchesQuery && matchesFormat && matchesGenre && matchesTab && matchesTag;
+      const q = normalize($('search').value), format = $('formatFilter').value, genre = $('genreFilter').value, sort = $('sortBy').value;
+      const result = books.filter(b => {
+        const unread = !['Reading','Finished','DNF'].includes(b.status);
+        const text = normalize([b.title,b.author,b.series,b.genre,b.readType,b.status,b.format,b.notes,b.quote, unread ? 'unread not read' : '', ...(b.moodTags||[]), ...(b.feelTags||[]), ...(b.shelves||[])].join(' '));
+        const tags = [...(b.moodTags||[]), ...(b.feelTags||[]), ...(b.shelves||[])];
+        const tabOk = activeTab === 'All' || (activeTab === 'Rereads' ? bookReadCount(b) > 1 : activeTab === 'Unread' ? unread : activeTab === 'Favourites' ? Number(b.rating) === 5 : b.status === activeTab);
+        return (!q || text.includes(q)) && (format === 'All' || b.format === format) && (genre === 'All' || b.genre === genre) && tabOk && (activeTag === 'All' || tags.includes(activeTag));
       });
-
-      result.sort((a, b) => {
-        if (sortBy === 'title') return (a.title || '').localeCompare(b.title || '');
-        if (sortBy === 'author') return (a.author || '').localeCompare(b.author || '');
-        if (sortBy === 'rating') return Number(b.rating || 0) - Number(a.rating || 0);
-        if (sortBy === 'lastRead') return (b.lastRead || b.dateFinished || '').localeCompare(a.lastRead || a.dateFinished || '');
-        if (sortBy === 'timesRead') return Number(b.timesRead || 0) - Number(a.timesRead || 0);
-        return Number(b.createdAt || 0) - Number(a.createdAt || 0);
-      });
-
+      result.sort((a,b) => sort === 'title' ? (a.title||'').localeCompare(b.title||'') : sort === 'author' ? (a.author||'').localeCompare(b.author||'') : sort === 'rating' ? Number(b.rating||0)-Number(a.rating||0) : sort === 'lastRead' ? getLastRead(b).localeCompare(getLastRead(a)) : sort === 'timesRead' ? bookReadCount(b)-bookReadCount(a) : sort === 'progress' ? Number(b.progress||0)-Number(a.progress||0) : Number(b.createdAt||0)-Number(a.createdAt||0));
       return result;
     }
-
     function renderBooks() {
-      const grid = $('bookGrid');
       const result = filteredBooks();
-
-      if (!result.length) {
-        grid.innerHTML = `<div class="empty">No books found. Add one, change the filters, or stop pretending Laura won't fill this with hundreds of entries.</div>`;
-        return;
-      }
-
-      grid.innerHTML = result.map(book => {
-        const allBookTags = [...(book.moodTags || []), ...(book.feelTags || [])];
-        return `
-          <article class="book-card">
-            <div class="cover-wrap">${book.coverUrl ? `<img src="${escapeHtml(book.coverUrl)}" alt="Cover for ${escapeHtml(book.title)}" onerror="this.parentElement.textContent='No cover';" />` : 'No cover'}</div>
-            <div class="book-title">${escapeHtml(book.title)}</div>
-            <div class="book-author">${escapeHtml(book.author || 'Unknown author')}</div>
-            <div class="meta">
-              <span class="chip status">${escapeHtml(book.status)}</span>
-              <span class="chip">${escapeHtml(book.format)}</span>
-              <span class="chip rating">${sunflowerRating(book.rating)}</span>
-              ${book.genre ? `<span class="chip">${escapeHtml(book.genre)}</span>` : ''}
-              ${book.readReason ? `<span class="chip">${escapeHtml(book.readReason)}</span>` : ''}
-              ${book.isbn ? `<span class="chip">ISBN: ${escapeHtml(book.isbn)}</span>` : ''}
-              ${book.series ? `<span class="chip">${escapeHtml(book.series)}${book.seriesNumber ? ' #' + escapeHtml(book.seriesNumber) : ''}</span>` : ''}
-              <span class="chip">Read ${Number(book.timesRead || 0)}x</span>
-              ${book.pageCount ? `<span class="chip">${Number(book.pageCount).toLocaleString()} pages</span>` : ''}
-              ${book.rereadDates?.length ? `<span class="chip">Last read: ${escapeHtml([...book.rereadDates].sort((a,b) => b.localeCompare(a))[0])}</span>` : ''}
-            </div>
-            ${allBookTags.length ? `<div class="meta">${allBookTags.map(tag => `<span class="chip">${escapeHtml(tag)}</span>`).join('')}</div>` : ''}
-            ${book.rereadDates?.length ? `<div class="read-history"><strong>Read dates:</strong> ${[...book.rereadDates].sort((a,b) => b.localeCompare(a)).map(date => `<span>${escapeHtml(date)}</span>`).join('')}</div>` : ''}
-            ${book.notes ? `<p>${escapeHtml(book.notes)}</p>` : ''}
-            <div class="card-actions">
-              <button class="secondary" onclick="editBook('${book.id}')">Edit</button>
-              <button class="secondary" onclick="markFinished('${book.id}')">Finished</button>
-              <button class="secondary" onclick="increaseRead('${book.id}')">+ Reread</button>
-              <button class="secondary" onclick="decreaseRead('${book.id}')">- Reread</button>
-              <button class="danger" onclick="deleteBook('${book.id}')">Delete</button>
-            </div>
-          </article>
-        `;
+      if (!result.length) { $('bookGrid').innerHTML = '<div class="empty">No books found. Add one, change filters, or accept Laura has already outgrown your search query.</div>'; return; }
+      $('bookGrid').innerHTML = result.map(b => {
+        const dates = uniqueDates(b.readDates||[], 'desc'), tags = [...(b.moodTags||[]), ...(b.feelTags||[]), ...(b.shelves||[])];
+        return `<article class="book-card">
+          <div class="cover-wrap">${b.coverUrl ? `<img src="${escapeHtml(b.coverUrl)}" alt="Cover for ${escapeHtml(b.title)}" onerror="this.parentElement.textContent='No cover';" />` : 'No cover'}</div>
+          <div class="book-title">${escapeHtml(b.title)}</div><div class="book-author">${escapeHtml(b.author)}</div>
+          ${Number(b.progress||0) > 0 && b.status === 'Reading' ? `<div class="progress-shell"><div class="progress-bar" style="width:${Math.min(100, Number(b.progress||0))}%"></div></div><div class="small-note">${Number(b.progress||0)}% complete</div>` : ''}
+          <div class="meta"><span class="chip status">${escapeHtml(b.status)}</span><span class="chip">${escapeHtml(b.format)}</span><span class="chip rating">${ratingText(b.rating)}</span>${b.genre ? `<span class="chip">${escapeHtml(b.genre)}</span>`:''}${b.readType ? `<span class="chip">${escapeHtml(b.readType)}</span>`:''}${b.series ? `<span class="chip">${escapeHtml(b.series)}${b.seriesNumber ? ' #' + escapeHtml(b.seriesNumber) : ''}</span>`:''}<span class="chip">Read ${bookReadCount(b)}x</span>${b.pageCount ? `<span class="chip">${Number(b.pageCount).toLocaleString()} pages</span>`:''}${dates[0] ? `<span class="chip">Last read: ${escapeHtml(dates[0])}</span>`:''}</div>
+          ${tags.length ? `<div class="meta">${tags.map(t => `<span class="chip">${escapeHtml(t)}</span>`).join('')}</div>` : ''}
+          ${dates.length ? `<div class="read-history"><strong>Read dates:</strong>${dates.map(d => `<span>${escapeHtml(d)}</span>`).join('')}</div>`:''}
+          ${b.notes ? `<p>${escapeHtml(b.notes)}</p>`:''}${b.quote ? `<p><strong>Quote:</strong> ${escapeHtml(b.quote)}</p>`:''}
+          <div class="card-actions"><button class="secondary" onclick="editBook('${b.id}')">Edit</button><button class="secondary" onclick="finishBook('${b.id}')">Finished</button><button class="secondary" onclick="addTodayReread('${b.id}')">+ Reread</button><button class="secondary" onclick="removeLatestRead('${b.id}')">- Reread</button><button class="danger" onclick="deleteBook('${b.id}')">Delete</button></div>
+        </article>`;
       }).join('');
     }
 
-    function escapeHtml(value) {
-      return String(value || '')
-        .replaceAll('&', '&amp;')
-        .replaceAll('<', '&lt;')
-        .replaceAll('>', '&gt;')
-        .replaceAll('"', '&quot;')
-        .replaceAll("'", '&#039;');
+    function renderInsights() {
+      const formats = countBy(books.map(b => b.format));
+      const genres = countBy(books.map(b => b.genre));
+      const moods = countBy(books.flatMap(b => b.moodTags || []));
+      const shelves = countBy(books.flatMap(b => b.shelves || []));
+      const mostReread = [...books].sort((a,b) => bookReadCount(b)-bookReadCount(a))[0];
+      const fiveStars = books.filter(b => Number(b.rating) === 5).length;
+      const pages = books.reduce((s,b) => s + Number(b.pageCount||0) * bookReadCount(b), 0);
+      const cards = [
+        ['Top Genre', genres[0] ? `${genres[0][0]} (${genres[0][1]})` : 'Not enough data'], ['Top Format', formats[0] ? `${formats[0][0]} (${formats[0][1]})` : 'Not enough data'], ['Top Mood', moods[0] ? `${moods[0][0]} (${moods[0][1]})` : 'Not enough data'],
+        ['Most Used Shelf', shelves[0] ? `${shelves[0][0]} (${shelves[0][1]})` : 'Not enough data'], ['Most Reread', mostReread ? `${mostReread.title} (${bookReadCount(mostReread)}x)` : 'Not enough data'], ['5 Sunflower Books', fiveStars],
+        ['Total Pages', pages.toLocaleString()], ['Current Streak', currentStreak() + ' days'], ['Best Streak', longestStreak() + ' days']
+      ];
+      $('insightsGrid').innerHTML = cards.map(([t,v]) => `<div class="mini-card"><div class="mini-title">${t}</div><div class="mini-value">${escapeHtml(v)}</div></div>`).join('');
+    }
+    function renderCalendar() {
+      const dailySet = new Set(dailyLog.map(x => typeof x === 'string' ? x : x.date));
+      const finishSet = new Set(allBookFinishDates().map(x => x.date));
+      const days = [];
+      const start = new Date(); start.setDate(start.getDate() - 97);
+      for (let i=0;i<98;i++) { const d = new Date(start); d.setDate(start.getDate()+i); const s = d.toISOString().slice(0,10); days.push(s); }
+      $('heatmap').innerHTML = days.map(d => `<div class="heat-day ${dailySet.has(d)?'on':''} ${finishSet.has(d)?'finish':''}" data-date="${d}"></div>`).join('');
+    }
+    function renderShelves() {
+      const shelfNames = countBy(books.flatMap(b => b.shelves || [])).map(x => x[0]);
+      $('shelvesGrid').innerHTML = shelfNames.length ? shelfNames.map(s => { const list = books.filter(b => (b.shelves||[]).includes(s)); return `<div class="mini-card"><div class="mini-title">${escapeHtml(s)}</div><div class="mini-value">${list.length} books</div><div class="small-note">${list.slice(0,4).map(b => escapeHtml(b.title)).join(', ')}</div></div>`; }).join('') : '<div class="empty">No shelves yet. Add shelves like Comfort Reads, Autumn Vibes, or Dragon Obsession.</div>';
+    }
+    function achievements() {
+      const fiveStars = books.filter(b => Number(b.rating) === 5).length;
+      const finished = allBookFinishDates().length;
+      const fantasy = books.filter(b => b.genre === 'Fantasy' || b.genre === 'Romantasy' || b.genre === 'Epic Fantasy').length;
+      const comfort = books.some(b => bookReadCount(b) >= 3);
+      return [
+        ['First Chapter 🌱', books.length >= 1, 'Log your first book'], ['Bookworm 📚', finished >= 10, 'Finish 10 books'], ['Certified Reader 🏅', finished >= 25, 'Finish 25 books'], ['Sunflower Soul 🌻', fiveStars >= goals.fiveStars, `Log ${goals.fiveStars} five-sunflower books`],
+        ['Comfort Queen 👑', comfort, 'Reread the same book 3 times'], ['Fantasy Addict 🐉', fantasy >= 10, 'Add 10 fantasy/romantasy books'], ['Streak Keeper 🔥', currentStreak() >= 7, 'Read 7 days in a row'], ['Boss Princess 👸', longestStreak() >= goals.streak, `Hit a ${goals.streak}-day streak`]
+      ];
+    }
+    function renderAchievements() { $('achievementsGrid').innerHTML = achievements().map(([name,unlocked,desc]) => `<div class="mini-card" style="opacity:${unlocked?1:.55}"><div class="mini-title">${unlocked?'Unlocked':'Locked'}</div><div class="mini-value">${name}</div><div class="small-note">${desc}</div></div>`).join(''); }
+    function renderYearReview() {
+      const year = new Date().getFullYear();
+      const finished = allBookFinishDates().filter(x => sameYear(x.date, year));
+      const topRated = [...books].filter(b => Number(b.rating)>0).sort((a,b)=>Number(b.rating)-Number(a.rating))[0];
+      const longest = [...books].sort((a,b)=>Number(b.pageCount||0)-Number(a.pageCount||0))[0];
+      const genres = countBy(finished.map(x => x.book.genre));
+      $('yearReviewContent').innerHTML = [
+        ['Books Finished', finished.length], ['Top Genre', genres[0] ? genres[0][0] : 'Not enough data'], ['Favourite Rated', topRated ? `${topRated.title} (${ratingText(topRated.rating)})` : 'Not enough data'], ['Longest Book', longest && longest.pageCount ? `${longest.title} (${longest.pageCount} pages)` : 'Not enough data'], ['Best Streak', longestStreak() + ' days'], ['Reading Days', uniqueDates(dailyLog.map(x => typeof x === 'string' ? x : x.date)).filter(d => sameYear(d, year)).length]
+      ].map(([t,v]) => `<div class="mini-card"><div class="mini-title">${t}</div><div class="mini-value">${escapeHtml(v)}</div></div>`).join('');
+      const events = finished.sort((a,b)=>b.date.localeCompare(a.date)).slice(0,20);
+      $('timeline').innerHTML = events.length ? events.map(e => `<div class="timeline-item"><strong>${escapeHtml(e.date)}</strong> — ${escapeHtml(e.book.title)} by ${escapeHtml(e.book.author)}</div>`).join('') : '<div class="empty">No finished books this year yet.</div>';
     }
 
-    function renderReadingLog() {
-      const dateInput = $('readingLogDate');
-      const list = $('readingLogList');
-      if (!dateInput || !list) return;
+    function renderAllViews() { renderInsights(); renderCalendar(); renderShelves(); renderAchievements(); renderYearReview(); }
+    function render() { renderDashboard(); renderGoalsForm(); renderDailyBookOptions(); renderDailyLog(); renderFormReadDates(); renderTabs(); renderTagFilters(); renderBooks(); renderAllViews(); showView(currentView); }
+    function showView(view) { currentView = view; document.querySelectorAll('.app-view').forEach(v => v.classList.add('hidden')); $(`view-${view}`).classList.remove('hidden'); document.querySelectorAll('.nav-btn').forEach(b => b.classList.toggle('active', b.dataset.view === view)); }
 
-      if (!dateInput.value) dateInput.value = today();
-      const days = uniqueSortedReadingDays();
-
-      if (!days.length) {
-        list.innerHTML = '<span class="small-note">No reading days logged yet.</span>';
-        return;
-      }
-
-      list.innerHTML = days.slice(0, 12).map(date => `
-        <span class="reading-day-pill">
-          ${escapeHtml(date)}
-          <button type="button" onclick="removeReadingDay('${date}')" aria-label="Remove reading day">×</button>
-        </span>
-      `).join('') + (days.length > 12 ? `<span class="small-note">+${days.length - 12} older days</span>` : '');
+    function resetForm() { $('bookForm').reset(); $('bookId').value=''; $('formTitle').textContent='Add a Book'; $('isbnStatus').textContent='Optional. Works best for physical books.'; formReadDates=[]; renderFormReadDates(); }
+    function collectBook() {
+      const title = $('title').value.trim(), author = $('author').value.trim();
+      if (!title) throw new Error('Add a title first.'); if (!author) throw new Error('Add an author first.');
+      const id = $('bookId').value || uid(); const old = books.find(b => b.id === id); const dates = uniqueDates(formReadDates,'desc');
+      return { id, isbn: cleanIsbn($('isbn').value), coverUrl: $('coverUrl').value.trim(), title, author, series: $('series').value.trim(), seriesNumber: $('seriesNumber').value, format: $('format').value, status: $('status').value, rating: Number($('rating').value), genre: $('genre').value, readType: $('readType').value, shelves: splitList($('shelvesInput').value), moodTags: splitList($('moodTags').value), feelTags: splitList($('feelTags').value), progress: Number($('progressPercent').value||0), pageCount: Number($('pageCount').value||0), readDates: dates, timesRead: Math.max(dates.length, Number(old?.timesRead||0)), lastRead: dates[0]||'', notes: $('notes').value.trim(), quote: $('quote').value.trim(), hangover: Number($('bookHangover').value||0), createdAt: old?.createdAt || Date.now(), updatedAt: Date.now() };
     }
+    function saveBook(e) { e.preventDefault(); try { const b = collectBook(); books = books.some(x=>x.id===b.id) ? books.map(x=>x.id===b.id?b:x) : [b,...books]; saveBooks(); resetForm(); render(); } catch(err) { alert(err.message); } }
+    function addBookDate() { const d = $('bookReadDate').value; if(!d) return alert('Pick a read date first.'); formReadDates = uniqueDates([...formReadDates, d], 'desc'); $('bookReadDate').value=''; renderFormReadDates(); }
+    window.removeBookDate = (d) => { formReadDates = formReadDates.filter(x => x !== d); renderFormReadDates(); };
+    function markDailyRead() { const d = $('dailyDate').value || today(); if (!dailyLog.includes(d)) { dailyLog.push(d); $('dailyStatus').textContent = `Logged ${d}. Streak updated.`; } else $('dailyStatus').textContent = `${d} is already logged.`; saveDaily(); render(); }
+    window.removeDaily = (d) => { dailyLog = dailyLog.filter(x => x !== d); saveDaily(); render(); };
+    window.editBook = (id) => { const b = books.find(x=>x.id===id); if(!b) return; $('bookId').value=b.id; $('isbn').value=b.isbn||''; $('coverUrl').value=b.coverUrl||''; $('title').value=b.title||''; $('author').value=b.author||''; $('series').value=b.series||''; $('seriesNumber').value=b.seriesNumber||''; $('format').value=b.format||'Paperback'; $('status').value=b.status||'Owned'; $('rating').value=b.rating||0; $('genre').value=b.genre||''; $('readType').value=b.readType||''; $('shelvesInput').value=(b.shelves||[]).join(', '); $('moodTags').value=(b.moodTags||[]).join(', '); $('feelTags').value=(b.feelTags||[]).join(', '); $('progressPercent').value=b.progress||0; $('pageCount').value=b.pageCount||0; $('notes').value=b.notes||''; $('quote').value=b.quote||''; $('bookHangover').value=b.hangover||0; formReadDates=[...(b.readDates||[])]; $('formTitle').textContent='Edit Book'; renderFormReadDates(); window.scrollTo({top:0, behavior:'smooth'}); };
+    window.finishBook = (id) => { const d=today(); books=books.map(b=>b.id===id?{...b,status:'Finished',progress:100,readDates:uniqueDates([...(b.readDates||[]),d]),timesRead:uniqueDates([...(b.readDates||[]),d]).length,lastRead:d,updatedAt:Date.now()}:b); saveBooks(); render(); };
+    window.addTodayReread = (id) => { const d=today(); books=books.map(b=>b.id===id?{...b,status:'Finished',readDates:uniqueDates([...(b.readDates||[]),d]),timesRead:uniqueDates([...(b.readDates||[]),d]).length,lastRead:d,updatedAt:Date.now()}:b); saveBooks(); render(); };
+    window.removeLatestRead = (id) => { books=books.map(b=>{ if(b.id!==id) return b; const dates=uniqueDates(b.readDates||[]); dates.shift(); return {...b, readDates:dates, timesRead:dates.length, lastRead:dates[0]||'', updatedAt:Date.now()}; }); saveBooks(); render(); };
+    window.deleteBook = (id) => { const b=books.find(x=>x.id===id); if(!b) return; if(!confirm(`Delete "${b.title}"?`)) return; books=books.filter(x=>x.id!==id); saveBooks(); if($('bookId').value===id) resetForm(); render(); };
 
-    window.markReadingDay = function markReadingDay() {
-      const date = $('readingLogDate').value || today();
-      if (!readingLog.includes(date)) {
-        readingLog.push(date);
-        $('readingLogStatus').textContent = `Logged ${date}. Streak updated.`;
-      } else {
-        $('readingLogStatus').textContent = `${date} is already logged.`;
-      }
-      saveReadingLog();
-      render();
+    async function fetchBookByIsbn() { const isbn=cleanIsbn($('isbn').value); if(!isbn) return $('isbnStatus').textContent='Add an ISBN first.'; $('isbnStatus').textContent='Looking up book details...'; $('fetchIsbnBtn').disabled=true; try { const r=await fetch(`${OPEN_LIBRARY_BASE}/isbn/${isbn}.json`); if(!r.ok) throw new Error(); const data=await r.json(); $('isbn').value=isbn; $('title').value=data.title||$('title').value; $('coverUrl').value=`https://covers.openlibrary.org/b/isbn/${isbn}-L.jpg`; if(Array.isArray(data.authors)){ const names=await Promise.all(data.authors.slice(0,3).map(async a=>{try{const ar=await fetch(`${OPEN_LIBRARY_BASE}${a.key}.json`); if(!ar.ok) return ''; const ad=await ar.json(); return ad.name||'';}catch{return ''}})); const name=names.filter(Boolean).join(', '); if(name) $('author').value=name; } $('isbnStatus').textContent='Found it. Check before saving.'; } catch { $('isbnStatus').textContent='Could not find that ISBN. Add manually.'; } finally { $('fetchIsbnBtn').disabled=false; } }
+    function handleCoverUpload(e) { const file=e.target.files[0]; if(!file) return; if(!file.type.startsWith('image/')) return alert('Choose an image file.'); const reader=new FileReader(); reader.onload=()=>{$('coverUrl').value=reader.result}; reader.readAsDataURL(file); }
+    function saveGoalSettings() { goals={ books:Math.max(1,Number($('goalBooks').value||50)), pages:Math.max(0,Number($('goalPages').value||0)), streak:Math.max(1,Number($('goalStreak').value||30)), fiveStars:Math.max(0,Number($('goalFiveStars').value||10)) }; saveGoals(); render(); }
+    function exportBackup() { const blob=new Blob([JSON.stringify({version:VERSION, exportedAt:new Date().toISOString(), books, dailyLog, goals},null,2)],{type:'application/json'}); const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download=`lauras-library-v3-${today()}.json`; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url); }
+    async function importBackup(e) { const file=e.target.files[0]; if(!file) return; try { const data=JSON.parse(await file.text()); const importedBooks=Array.isArray(data)?data:data.books; if(!Array.isArray(importedBooks)) throw new Error(); if(!confirm('Replace current library with this backup?')) return; books=importedBooks; dailyLog=Array.isArray(data.dailyLog)?data.dailyLog:[]; goals={...goals,...(data.goals||{})}; saveBooks(); saveDaily(); saveGoals(); render(); } catch { alert('That backup file is not valid.'); } finally { e.target.value=''; } }
+    function clearAll() { if(!confirm('Clear every book, log, goal and note from this device? Export first.')) return; books=[]; dailyLog=[]; saveBooks(); saveDaily(); resetForm(); render(); }
+    function toggleTheme() { const next = document.body.dataset.theme === 'dark' ? 'sunflower' : 'dark'; document.body.dataset.theme = next; localStorage.setItem(THEME_KEY, next); }
+
+    function wire() {
+      document.querySelectorAll('.nav-btn').forEach(btn => btn.onclick = () => showView(btn.dataset.view));
+      $('themeBtn').onclick = toggleTheme; $('bookForm').onsubmit = saveBook; $('clearFormBtn').onclick = resetForm; $('addBookReadDateBtn').onclick = addBookDate; $('readTodayBtn').onclick = markDailyRead; $('fetchIsbnBtn').onclick = fetchBookByIsbn; $('coverUpload').onchange = handleCoverUpload; $('clearCoverBtn').onclick = () => { $('coverUrl').value=''; $('coverUpload').value=''; }; $('saveGoalsBtn').onclick = saveGoalSettings; $('exportBtn').onclick = exportBackup; $('importBtn').onclick = () => $('importFile').click(); $('importFile').onchange = importBackup; $('clearAllBtn').onclick = clearAll; ['search','formatFilter','genreFilter','sortBy'].forEach(id => $(id).oninput = render);
     }
-
-    window.removeReadingDay = function(date) {
-      readingLog = readingLog.filter(d => d !== date);
-      saveReadingLog();
-      render();
-    }
-
-    function render() {
-      renderDashboard();
-      renderReadingLog();
-      renderTabs();
-      renderTagFilters();
-      renderBooks();
-    }
-
-    function saveBook(event) {
-      if (event) event.preventDefault();
-
-      if (!$('title').value.trim()) {
-        alert('Add a title first. Laura cannot file a mystery book.');
-        return false;
-      }
-
-      if (!$('author').value.trim()) {
-        alert('Add an author first. Even Laura needs to know who wrote it.');
-        return false;
-      }
-
-      const id = $('bookId').value || crypto.randomUUID();
-      const existing = books.find(b => b.id === id);
-      const readDates = [...currentFormReadDates];
-      const sortedReadDates = [...readDates].sort((a, b) => b.localeCompare(a));
-      const book = {
-        id,
-        isbn: cleanIsbn($('isbn').value),
-        coverUrl: $('coverUrl').value.trim(),
-        title: $('title').value.trim(),
-        author: $('author').value.trim(),
-        series: $('series').value.trim(),
-        seriesNumber: $('seriesNumber').value,
-        format: $('format').value,
-        status: $('status').value,
-        rating: Number($('rating').value),
-        genre: $('genre').value,
-        readReason: $('readReason').value,
-        moodTags: splitTags($('moodTags').value),
-        feelTags: splitTags($('feelTags').value),
-        timesRead: Number($('timesRead').value || sortedReadDates.length || 0),
-        pageCount: Number($('pageCount').value || 0),
-        rereadDates: sortedReadDates,
-        lastRead: sortedReadDates[0] || '',
-        notes: $('notes').value.trim(),
-        createdAt: existing?.createdAt || Date.now(),
-        updatedAt: Date.now()
-      };
-
-      books = existing ? books.map(b => b.id === id ? book : b) : [book, ...books];
-      save();
-      resetForm();
-      render();
-      return false;
-    }
-
-    $('bookForm').addEventListener('submit', saveBook);
-    $('saveBookButton').addEventListener('click', saveBook);
-
-    function resetForm() {
-      $('bookForm').reset();
-      $('bookId').value = '';
-      currentFormReadDates = [];
-      renderFormReadDates();
-      setIsbnStatus('Optional. Works best for physical books.');
-      $('rating').value = 0;
-      $('timesRead').value = 0;
-      $('formTitle').textContent = 'Add a Book';
-    }
-
-    $('resetForm').onclick = resetForm;
-
-    window.editBook = function(id) {
-      const book = books.find(b => b.id === id);
-      if (!book) return;
-      $('bookId').value = book.id;
-      $('isbn').value = book.isbn || '';
-      $('coverUrl').value = book.coverUrl || '';
-      $('title').value = book.title || '';
-      $('author').value = book.author || '';
-      $('series').value = book.series || '';
-      $('seriesNumber').value = book.seriesNumber || '';
-      $('format').value = book.format || 'Paperback';
-      $('status').value = book.status || 'Owned';
-      $('rating').value = book.rating || 0;
-      $('genre').value = book.genre || '';
-      $('readReason').value = book.readReason || '';
-      $('moodTags').value = (book.moodTags || []).join(', ');
-      $('feelTags').value = (book.feelTags || []).join(', ');
-      $('timesRead').value = book.timesRead || 0;
-      $('pageCount').value = book.pageCount || 0;
-      currentFormReadDates = [...(book.rereadDates || [])];
-      renderFormReadDates();
-      
-      $('notes').value = book.notes || '';
-      $('formTitle').textContent = 'Edit Book';
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-
-    window.markFinished = function(id) {
-      books = books.map(book => {
-        if (book.id !== id) return book;
-        const currentReads = Number(book.timesRead || 0);
-        return {
-          ...book,
-          status: 'Finished',
-          timesRead: currentReads > 0 ? currentReads : 1,
-          dateFinished: book.dateFinished || today(),
-          lastRead: today(),
-          updatedAt: Date.now()
-        };
-      });
-      save();
-      render();
-    }
-
-    window.increaseRead = function(id) {
-      books = books.map(book => book.id === id ? {
-        ...book,
-        timesRead: Number(book.timesRead || 0) + 1,
-        rereadDates: [...(book.rereadDates || []), today()],
-        status: 'Finished',
-        lastRead: today(),
-        dateFinished: today(),
-        updatedAt: Date.now()
-      } : book);
-      save();
-      render();
-    }
-
-    window.decreaseRead = function(id) {
-      books = books.map(book => {
-        if (book.id !== id) return book;
-        const dates = [...(book.rereadDates || [])];
-        dates.pop();
-        const reads = Math.max(0, Number(book.timesRead || 0) - 1);
-        return {
-          ...book,
-          timesRead: reads,
-          rereadDates: dates,
-          lastRead: dates.slice(-1)[0] || '',
-          updatedAt: Date.now()
-        };
-      });
-      save();
-      render();
-    }
-
-    window.deleteBook = function(id) {
-      const book = books.find(b => b.id === id);
-      if (!book) return;
-      if (!confirm(`Delete "${book.title}"?`)) return;
-      books = books.filter(b => b.id !== id);
-      save();
-      render();
-    }
-
-    ['search', 'formatFilter', 'genreFilter', 'sortBy'].forEach(id => $(id).addEventListener('input', render));
-
-    $('fetchIsbn').onclick = fetchBookByIsbn;
-    if ($('markReadToday')) $('markReadToday').onclick = markReadingDay;
-    if ($('addReadDate')) $('addReadDate').onclick = addFormReadDate;
-
-    $('exportData').onclick = () => {
-      const blob = new Blob([JSON.stringify(books, null, 2)], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `lauras-library-backup-${today()}.json`;
-      a.click();
-      URL.revokeObjectURL(url);
-    };
-
-    $('importData').onclick = () => $('importFile').click();
-
-    $('importFile').onchange = async (event) => {
-      const file = event.target.files[0];
-      if (!file) return;
-      try {
-        const imported = JSON.parse(await file.text());
-        if (!Array.isArray(imported)) throw new Error('Invalid file');
-        if (!confirm('Importing will replace the current library on this device. Continue?')) return;
-        books = imported;
-        save();
-        render();
-      } catch (err) {
-        alert('That backup file does not look valid.');
-      } finally {
-        event.target.value = '';
-      }
-    };
-
-    $('clearAll').onclick = () => {
-      if (!books.length) return;
-      if (!confirm('Clear every book from this device? Export a backup first unless you enjoy pain.')) return;
-      books = [];
-      save();
-      resetForm();
-      render();
-    };
-
-    function startApp() {
-      loadBooks();
-      if ($('readingLogDate')) $('readingLogDate').value = today();
-      renderFormReadDates();
-      render();
-    }
-
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', startApp);
-    } else {
-      startApp();
-    }
+    function showView(view) { currentView=view; document.querySelectorAll('.app-view').forEach(v => v.classList.add('hidden')); $(`view-${view}`).classList.remove('hidden'); document.querySelectorAll('.nav-btn').forEach(b => b.classList.toggle('active', b.dataset.view===view)); }
+    function start() { load(); $('dailyDate').value=today(); renderGoalsForm(); wire(); render(); }
+    document.addEventListener('DOMContentLoaded', start);
   </script>
 </body>
 </html>
