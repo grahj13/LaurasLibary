@@ -413,8 +413,11 @@
           <div class="footer-tools">
             <button class="secondary" id="exportBtn" type="button">Export Backup</button>
             <button class="secondary" id="importBtn" type="button">Import Backup</button>
+            <button class="secondary" id="downloadCsvTemplateBtn" type="button">Download CSV Template</button>
+            <button class="secondary" id="importCsvBtn" type="button">Import CSV</button>
             <button class="danger" id="clearAllBtn" type="button">Clear All</button>
             <input id="importFile" type="file" accept="application/json" style="display:none" />
+            <input id="csvFile" type="file" accept=".csv,text/csv" style="display:none" />
           </div>
         </section>
       </aside>
@@ -692,6 +695,127 @@
     async function fetchBookByIsbn() { const isbn=cleanIsbn($('isbn').value); if(!isbn) return $('isbnStatus').textContent='Add an ISBN first.'; $('isbnStatus').textContent='Looking up book details...'; $('fetchIsbnBtn').disabled=true; try { const r=await fetch(`${OPEN_LIBRARY_BASE}/isbn/${isbn}.json`); if(!r.ok) throw new Error(); const data=await r.json(); $('isbn').value=isbn; $('title').value=data.title||$('title').value; $('coverUrl').value=`https://covers.openlibrary.org/b/isbn/${isbn}-L.jpg`; if(Array.isArray(data.authors)){ const names=await Promise.all(data.authors.slice(0,3).map(async a=>{try{const ar=await fetch(`${OPEN_LIBRARY_BASE}${a.key}.json`); if(!ar.ok) return ''; const ad=await ar.json(); return ad.name||'';}catch{return ''}})); const name=names.filter(Boolean).join(', '); if(name) $('author').value=name; } $('isbnStatus').textContent='Found it. Check before saving.'; } catch { $('isbnStatus').textContent='Could not find that ISBN. Add manually.'; } finally { $('fetchIsbnBtn').disabled=false; } }
     function handleCoverUpload(e) { const file=e.target.files[0]; if(!file) return; if(!file.type.startsWith('image/')) return alert('Choose an image file.'); const reader=new FileReader(); reader.onload=()=>{$('coverUrl').value=reader.result}; reader.readAsDataURL(file); }
     function saveGoalSettings() { goals={ books:Math.max(1,Number($('goalBooks').value||50)), pages:Math.max(0,Number($('goalPages').value||0)), streak:Math.max(1,Number($('goalStreak').value||30)), fiveStars:Math.max(0,Number($('goalFiveStars').value||10)) }; saveGoals(); render(); }
+    function downloadCsvTemplate() {
+      const headers = [
+        'title', 'author', 'genre', 'status', 'format', 'rating',
+        'series', 'seriesNumber', 'shelves', 'moodTags', 'feelTags',
+        'readType', 'progress', 'pageCount', 'readDates', 'timesRead',
+        'notes', 'quote'
+      ];
+
+      const example = [
+        'Fourth Wing', 'Rebecca Yarros', 'Romantasy', 'TBR', 'Hardback', '5',
+        'The Empyrean', '1', 'Dragons|Favourites', 'emotional|obsessed', 'slow burn|found family',
+        'Recommended Book', '0', '512', '2026-01-15|2026-05-10', '2',
+        'Loved the dragons and chaos', 'A quote worth saving'
+      ];
+
+      const csv = [headers, example]
+        .map(row => row.map(value => `"${String(value).replace(/"/g, '""')}"`).join(','))
+        .join('\n');
+
+      const blob = new Blob([csv], { type: 'text/csv' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `lauras-library-import-template.csv`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    }
+
+    async function importCSV(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      try {
+        const text = await file.text();
+        const rows = parseCSV(text);
+        if (rows.length < 2) throw new Error('CSV has no book rows.');
+
+        const headers = rows[0].map(h => normalize(h));
+        const imported = rows.slice(1).filter(row => row.some(Boolean)).map(row => {
+          const data = {};
+          headers.forEach((header, index) => data[header] = row[index] || '');
+
+          const readDates = data.readdates ? data.readdates.split('|').map(x => x.trim()).filter(Boolean) : [];
+          const timesRead = Math.max(Number(data.timesread || 0), readDates.length);
+
+          return {
+            id: uid(),
+            title: data.title || 'Untitled',
+            author: data.author || 'Unknown Author',
+            genre: data.genre || '',
+            status: data.status || 'Owned',
+            format: data.format || 'Paperback',
+            rating: Number(data.rating || 0),
+            series: data.series || '',
+            seriesNumber: data.seriesnumber || '',
+            shelves: data.shelves ? data.shelves.split('|').map(x => x.trim()).filter(Boolean) : [],
+            moodTags: data.moodtags ? data.moodtags.split('|').map(x => x.trim()).filter(Boolean) : [],
+            feelTags: data.feeltags ? data.feeltags.split('|').map(x => x.trim()).filter(Boolean) : [],
+            readType: data.readtype || '',
+            progress: Number(data.progress || 0),
+            pageCount: Number(data.pagecount || 0),
+            readDates: uniqueDates(readDates, 'desc'),
+            timesRead,
+            lastRead: uniqueDates(readDates, 'desc')[0] || '',
+            notes: data.notes || '',
+            quote: data.quote || '',
+            hangover: Number(data.hangover || 0),
+            createdAt: Date.now(),
+            updatedAt: Date.now()
+          };
+        });
+
+        if (!imported.length) throw new Error('No books found.');
+        books = [...imported, ...books];
+        saveBooks();
+        render();
+        alert(`${imported.length} books imported successfully.`);
+      } catch (error) {
+        console.error(error);
+        alert('Could not import CSV. Use the template and keep the headers unchanged.');
+      } finally {
+        e.target.value = '';
+      }
+    }
+
+    function parseCSV(text) {
+      const rows = [];
+      let row = [];
+      let cell = '';
+      let inQuotes = false;
+
+      for (let i = 0; i < text.length; i++) {
+        const char = text[i];
+        const next = text[i + 1];
+
+        if (char === '"' && inQuotes && next === '"') {
+          cell += '"';
+          i++;
+        } else if (char === '"') {
+          inQuotes = !inQuotes;
+        } else if (char === ',' && !inQuotes) {
+          row.push(cell);
+          cell = '';
+        } else if ((char === '\n' || char === '\r') && !inQuotes) {
+          if (char === '\r' && next === '\n') i++;
+          row.push(cell);
+          if (row.some(value => value.trim())) rows.push(row);
+          row = [];
+          cell = '';
+        } else {
+          cell += char;
+        }
+      }
+
+      row.push(cell);
+      if (row.some(value => value.trim())) rows.push(row);
+      return rows;
+    }
+
     function exportBackup() { const blob=new Blob([JSON.stringify({version:VERSION, exportedAt:new Date().toISOString(), books, dailyLog, goals},null,2)],{type:'application/json'}); const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download=`lauras-library-v3-${today()}.json`; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url); }
     async function importBackup(e) { const file=e.target.files[0]; if(!file) return; try { const data=JSON.parse(await file.text()); const importedBooks=Array.isArray(data)?data:data.books; if(!Array.isArray(importedBooks)) throw new Error(); if(!confirm('Replace current library with this backup?')) return; books=importedBooks; dailyLog=Array.isArray(data.dailyLog)?data.dailyLog:[]; goals={...goals,...(data.goals||{})}; saveBooks(); saveDaily(); saveGoals(); render(); } catch { alert('That backup file is not valid.'); } finally { e.target.value=''; } }
     function clearAll() { if(!confirm('Clear every book, log, goal and note from this device? Export first.')) return; books=[]; dailyLog=[]; saveBooks(); saveDaily(); resetForm(); render(); }
@@ -699,7 +823,7 @@
 
     function wire() {
       document.querySelectorAll('.nav-btn').forEach(btn => btn.onclick = () => showView(btn.dataset.view));
-      $('themeBtn').onclick = toggleTheme; $('bookForm').onsubmit = saveBook; $('clearFormBtn').onclick = resetForm; $('addBookReadDateBtn').onclick = addBookDate; $('readTodayBtn').onclick = markDailyRead; $('fetchIsbnBtn').onclick = fetchBookByIsbn; $('coverUpload').onchange = handleCoverUpload; $('clearCoverBtn').onclick = () => { $('coverUrl').value=''; $('coverUpload').value=''; }; $('saveGoalsBtn').onclick = saveGoalSettings; $('exportBtn').onclick = exportBackup; $('importBtn').onclick = () => $('importFile').click(); $('importFile').onchange = importBackup; $('clearAllBtn').onclick = clearAll; ['search','formatFilter','genreFilter','sortBy'].forEach(id => $(id).oninput = render);
+      $('themeBtn').onclick = toggleTheme; $('bookForm').onsubmit = saveBook; $('clearFormBtn').onclick = resetForm; $('addBookReadDateBtn').onclick = addBookDate; $('readTodayBtn').onclick = markDailyRead; $('fetchIsbnBtn').onclick = fetchBookByIsbn; $('coverUpload').onchange = handleCoverUpload; $('clearCoverBtn').onclick = () => { $('coverUrl').value=''; $('coverUpload').value=''; }; $('saveGoalsBtn').onclick = saveGoalSettings; $('exportBtn').onclick = exportBackup; $('importBtn').onclick = () => $('importFile').click(); $('importFile').onchange = importBackup; $('downloadCsvTemplateBtn').onclick = downloadCsvTemplate; $('importCsvBtn').onclick = () => $('csvFile').click(); $('csvFile').onchange = importCSV; $('clearAllBtn').onclick = clearAll; ['search','formatFilter','genreFilter','sortBy'].forEach(id => $(id).oninput = render);
     }
     function showView(view) { currentView=view; document.querySelectorAll('.app-view').forEach(v => v.classList.add('hidden')); $(`view-${view}`).classList.remove('hidden'); document.querySelectorAll('.nav-btn').forEach(b => b.classList.toggle('active', b.dataset.view===view)); }
     function start() { load(); $('dailyDate').value=today(); renderGoalsForm(); wire(); render(); }
